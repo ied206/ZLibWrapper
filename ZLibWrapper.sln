@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLibWrapper", "ZLibWrapper\ZLibWrapper.csproj", "{59474C6A-0391-4562-A3B6-D5E7712BB2DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLibWrapper.Tests", "ZLibWrapper.Tests\ZLibWrapper.Tests.csproj", "{EF8C6C1C-BFA6-4905-BA90-936431C1B22D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{59474C6A-0391-4562-A3B6-D5E7712BB2DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59474C6A-0391-4562-A3B6-D5E7712BB2DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59474C6A-0391-4562-A3B6-D5E7712BB2DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59474C6A-0391-4562-A3B6-D5E7712BB2DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF8C6C1C-BFA6-4905-BA90-936431C1B22D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF8C6C1C-BFA6-4905-BA90-936431C1B22D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF8C6C1C-BFA6-4905-BA90-936431C1B22D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF8C6C1C-BFA6-4905-BA90-936431C1B22D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7C2FABE6-BFE6-47AD-A55E-9650A08F9F01}
+	EndGlobalSection
+EndGlobal
