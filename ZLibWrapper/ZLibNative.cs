@@ -193,7 +193,7 @@ namespace ZLibWrapper
         #region zlib Functions Delegates
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int deflateInit2_Delegate(
-            ref ZStream strm,
+            ZStream strm,
             int level,
             int method,
             int windowBits,
@@ -203,45 +203,45 @@ namespace ZLibWrapper
             int stream_size);
         private static deflateInit2_Delegate deflateInit2_;
 
-        internal static int DeflateInit(ref ZStream strm, CompressionLevel level, ZLibWriteType windowBits)
+        internal static int DeflateInit(ZStream strm, CompressionLevel level, ZLibWriteType windowBits)
         {
-            return deflateInit2_(ref strm, (int)level, Z_DEFLATED, (int)windowBits, DEF_MEM_LEVEL,
+            return deflateInit2_(strm, (int)level, Z_DEFLATED, (int)windowBits, DEF_MEM_LEVEL,
                     (int)ZLibCompressionStrategy.Z_DEFAULT_STRATEGY, ZLibNative.ZLIB_VERSION, Marshal.SizeOf(typeof(ZStream)));
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int deflateDelegate(
-            ref ZStream strm,
+            ZStream strm,
             ZLibFlush flush);
         internal static deflateDelegate Deflate;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int deflateEndDelegate(
-            ref ZStream strm);
+            ZStream strm);
         internal static deflateEndDelegate DeflateEnd;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int inflateInit2_Delegate(
-            ref ZStream strm,
+            ZStream strm,
             int windowBits,
             [MarshalAs(UnmanagedType.LPStr)] string version,
             int stream_size);
         private static inflateInit2_Delegate inflateInit2_;
 
-        internal static int InflateInit(ref ZStream strm, ZLibOpenType windowBits)
+        internal static int InflateInit(ZStream strm, ZLibOpenType windowBits)
         {
-            return inflateInit2_(ref strm, (int)windowBits, ZLibNative.ZLIB_VERSION, Marshal.SizeOf(typeof(ZStream)));
+            return inflateInit2_(strm, (int)windowBits, ZLibNative.ZLIB_VERSION, Marshal.SizeOf(typeof(ZStream)));
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int inflateDelegate(
-            ref ZStream strm,
+            ZStream strm,
             ZLibFlush flush);
         internal static inflateDelegate Inflate;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int inflateEndDelegate(
-            ref ZStream strm);
+            ZStream strm);
         internal static inflateEndDelegate InflateEnd;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
@@ -341,9 +341,9 @@ namespace ZLibWrapper
 
     #region z_stream
     [StructLayout(LayoutKind.Sequential)]
-	internal struct ZStream
-	{
-        internal void Init()
+    internal class ZStream
+    {
+        internal ZStream()
         {
             next_in = IntPtr.Zero;
             next_out = IntPtr.Zero;
