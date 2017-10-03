@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 namespace ZLibWrapper.Tests
 {
     [TestClass]
-    public class ChecksumTests
+    public class ChecksumsTests
     {
         #region Crc32Stream
         [TestMethod]

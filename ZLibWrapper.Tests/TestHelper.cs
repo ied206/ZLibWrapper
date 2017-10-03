@@ -23,6 +23,12 @@ namespace ZLibWrapper.Tests
             BaseDir = Path.Combine("..", "..", "Samples");
         }
 
+        [AssemblyCleanup]
+        public static void Cleanup()
+        {
+            ZLibNative.AssemblyCleanup();
+        }
+
         public static byte[] SHA256Digest(Stream stream)
         {
             HashAlgorithm hash = SHA256.Create();

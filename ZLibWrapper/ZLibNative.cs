@@ -127,6 +127,8 @@ namespace ZLibWrapper
         {
             if (hModule != null)
             {
+                ResetFuntions();
+
                 hModule.Close();
                 hModule = null;
             }
@@ -187,6 +189,18 @@ namespace ZLibWrapper
                     throw new ArgumentException("Cannot import crc32", new Win32Exception());
                 Crc32 = (crc32Delegate)Marshal.GetDelegateForFunctionPointer(funcPtr, typeof(crc32Delegate));
             }
+        }
+
+        private static void ResetFuntions()
+        {
+            deflateInit2_ = null;
+            Deflate = null;
+            DeflateEnd = null;
+            inflateInit2_ = null;
+            Inflate = null;
+            InflateEnd = null;
+            Adler32 = null;
+            Crc32 = null;
         }
         #endregion
 

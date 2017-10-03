@@ -1,7 +1,7 @@
 # ZLibWrapper
 C# wrapper for native zlib.
 
-Based on [@hardon](https://www.codeplex.com/site/users/view/hardon)'s [zlibnet](https://zlibnet.codeplex.com).
+Based on [zlibnet](https://zlibnet.codeplex.com) by [@hardon](https://www.codeplex.com/site/users/view/hardon).
 
 Master Build Status  
 [![CI Master Branch Build Status](https://ci.appveyor.com/api/projects/status/9t1fg4vyavqowb3p/branch/master?svg=true)](https://ci.appveyor.com/project/ied206/zlibwrapper/branch/master)
@@ -16,6 +16,8 @@ Develop Build Status
 - Adler32 and CRC32 checksum calculation
 
 ### Which zlib to use?
+Using lastest version of `zlibwapi.dll` is advised.
+
 #### clrcompression.dll
 Starting from .Net Framework 4.5, .Net has its own copy of zlib 1.2.3, named `clrcompression.dll`.  
 It is stripped version of zlib, which is used in `System.IO.Compression.DeflateStream`.  
@@ -25,7 +27,7 @@ ZLibWrapper uses `clrcompression.dll` by default.
 
 #### zlibwapi.dll
 ZLibWrapper contains `zlibwapi.dll`, precompiled binary of zlib 1.2.11.  
-To use zlibwapi.dll, call `ZLibNative.AssemblyInit()` first with correct path to `zlibwapi.dll`.
+To use zlibwapi.dll, call `ZLibNative.AssemblyInit(path_to_zlibwapi_dll)` at App's init code.
 
 ```cs
 string dllPath;
@@ -35,7 +37,3 @@ else
     dllPath = Path.Combine("x86", "zlibwapi.dll");
 ZLibNative.AssemblyInit(dllPath);
 ```
-
-## Known Issue
-- Even though `_zstream` was pinned by `GCHandle` in `DeflateStream`, unit tests rarely fails due to change of `_zstream`'s address.
-
