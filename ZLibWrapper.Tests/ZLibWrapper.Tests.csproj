@@ -49,14 +49,16 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChecksumTests.cs" />
+    <Compile Include="ChecksumsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="ZLibCompressorsTests.cs" />
     <Compile Include="ZLibStreamsTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ZLibWrapper\ZLibWrapper.csproj">

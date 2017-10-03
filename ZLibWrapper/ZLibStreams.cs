@@ -71,7 +71,6 @@ namespace ZLibWrapper
                 ZLibNative.AssemblyInit(); 
 
             _zstream = new ZStream();
-            _zstream.Init();
             _zstreamPtr = GCHandle.Alloc(_zstream, GCHandleType.Pinned);
 
             _leaveOpen = leaveOpen;
@@ -81,9 +80,9 @@ namespace ZLibWrapper
 
             int ret;
 			if (this._compMode == CompressionMode.Compress)
-				ret = ZLibNative.DeflateInit(ref _zstream, level, WriteType);
+				ret = ZLibNative.DeflateInit(_zstream, level, WriteType);
 			else
-				ret = ZLibNative.InflateInit(ref _zstream, OpenType);
+				ret = ZLibNative.InflateInit(_zstream, OpenType);
 
 			if (ret != ZLibReturnCode.OK)
 				throw new ZLibException(ret, _zstream.LastErrorMsg);
@@ -113,9 +112,9 @@ namespace ZLibWrapper
                 if (_zstreamDisposed == false)
                 {
                     if (this._compMode == CompressionMode.Compress)
-                        ZLibNative.DeflateEnd(ref _zstream);
+                        ZLibNative.DeflateEnd(_zstream);
                     else
-                        ZLibNative.InflateEnd(ref _zstream);
+                        ZLibNative.InflateEnd(_zstream);
                     _zstreamDisposed = true;
                 }
 
@@ -183,7 +182,7 @@ namespace ZLibWrapper
                         uint outCount = _zstream.avail_out;
 
                         // flush method for inflate has no effect
-                        int zlibError = ZLibNative.Inflate(ref _zstream, ZLibFlush.Z_NO_FLUSH); 
+                        int zlibError = ZLibNative.Inflate(_zstream, ZLibFlush.Z_NO_FLUSH);
 
                         _workDataPos += (int)(inCount - _zstream.avail_in);
                         readLen += (int)(outCount - _zstream.avail_out); 
@@ -234,7 +233,7 @@ namespace ZLibWrapper
 
 					uint outCount = _zstream.avail_out;
 
-					int zlibError = ZLibNative.Deflate(ref _zstream, ZLibFlush.Z_NO_FLUSH);
+					int zlibError = ZLibNative.Deflate(_zstream, ZLibFlush.Z_NO_FLUSH);
 
 					_workDataPos += (int)(outCount - _zstream.avail_out);
 
@@ -266,7 +265,7 @@ namespace ZLibWrapper
 					if (_zstream.avail_out != 0)
 					{
 						uint outCount = _zstream.avail_out;
-						zlibError = ZLibNative.Deflate(ref _zstream, ZLibFlush.Z_FINISH);
+						zlibError = ZLibNative.Deflate(_zstream, ZLibFlush.Z_FINISH);
 
 						_workDataPos += (int)(outCount - _zstream.avail_out);
 						if (zlibError != ZLibReturnCode.StreamEnd && zlibError != ZLibReturnCode.OK)
