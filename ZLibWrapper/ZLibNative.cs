@@ -83,10 +83,15 @@ namespace Joveler.ZLibWrapper
             if (hModule == null)
             {
                 if (dllPath == null)
-                { // Use .Net Framework's clrcompression instead
+                {
+#if NET40
+                    throw new ArgumentException("Please provide zlibwapi.dll");
+#else
+                    // Use .Net Framework's clrcompression instead
                     string fxDir = RuntimeEnvironment.GetRuntimeDirectory();
                     dllPath = Path.Combine(fxDir, "clrcompression.dll");
                     ZLibProvided = false;
+#endif
                 }
                 else if (!File.Exists(dllPath))
                 { // Check 
@@ -212,9 +217,9 @@ namespace Joveler.ZLibWrapper
             Adler32 = null;
             Crc32 = null;
         }
-        #endregion
+#endregion
 
-        #region zlib Functions Delegates
+#region zlib Functions Delegates
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int deflateInit2_Delegate(
             ZStream strm,
@@ -281,11 +286,11 @@ namespace Joveler.ZLibWrapper
             IntPtr buf,
             uint len);
         internal static crc32Delegate Crc32;
-        #endregion
+#endregion
     }
-    #endregion
+#endregion
 
-    #region zlib Enums
+#region zlib Enums
     internal enum ZLibFlush : int
 	{
 		Z_NO_FLUSH = 0,
@@ -361,9 +366,9 @@ namespace Joveler.ZLibWrapper
 		Level8 = 8,
 		Level9 = 9,
 	}
-    #endregion
+#endregion
 
-    #region z_stream
+#region z_stream
     [StructLayout(LayoutKind.Sequential)]
     internal class ZStream
     {
@@ -401,9 +406,9 @@ namespace Joveler.ZLibWrapper
 
         public string LastErrorMsg => Marshal.PtrToStringAnsi(msg);
     }
-    #endregion
+#endregion
 
-    #region zlib Return Code
+#region zlib Return Code
     internal static class ZLibReturnCode
 	{
 		public const int OK = 0;
@@ -443,9 +448,9 @@ namespace Joveler.ZLibWrapper
 			}
 		}
 	}
-    #endregion
+#endregion
 
-    #region ZLibException
+#region ZLibException
     [Serializable]
 	public class ZLibException : ApplicationException
 	{
@@ -473,9 +478,9 @@ namespace Joveler.ZLibWrapper
 			return msg;
 		}
 	}
-    #endregion
+#endregion
 
-    #region PinnedArray
+#region PinnedArray
     internal class PinnedArray : IDisposable
     {
         internal GCHandle hBuffer;
@@ -501,5 +506,5 @@ namespace Joveler.ZLibWrapper
             GC.SuppressFinalize(this);
         }
     }
-    #endregion
+#endregion
 }

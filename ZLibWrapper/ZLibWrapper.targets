@@ -28,7 +28,8 @@
   -->
 
   <ItemGroup>
-    <ZLibInteropFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
+    <ZLibInteropFiles Condition="'$(ExcludePrecompiled)' != 'true' And 
+                                  '$(MSBuildThisFileDirectory)' != '' And
                                    HasTrailingSlash('$(MSBuildThisFileDirectory)')"
                         Include="$(MSBuildThisFileDirectory)Precompiled\**\zlibwapi.dll" />
   </ItemGroup>

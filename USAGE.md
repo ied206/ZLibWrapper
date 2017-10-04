@@ -9,10 +9,11 @@ Personal recommendation is case 2, since it provides newer version of zlib while
 Starting from .Net Framework 4.5, .Net has its own copy of zlib, named `clrcompression.dll`.  
 It is stripped version of zlib, which is used in `System.IO.Compression.DeflateStream`.  
 
-If ZLibWrapper is used without explicit initialization, it uses `clrcompression.dll` as default.
+If ZLibWrapper is used in .Net Framework 4.5 or later without explicit initialization, `clrcompression.dll` is used by default.
 
 #### Limitation
 - Since `clrcompression.dll` does not expose `adler32()` and `crc32()`, checksum calculation feature will be disabled.
+- Application built for .Net Framework 4.0 cannot use this method.
 - `clrcompression.dll` is based on quite old version of zlib (at least in .Net Framework 4.7).
 
 ### Case 2 : Embedded Precompiled zlib
