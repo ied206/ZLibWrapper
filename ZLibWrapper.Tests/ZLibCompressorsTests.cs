@@ -4,7 +4,7 @@ using System.Text;
 using System.IO;
 using System.Linq;
 
-namespace ZLibWrapper.Tests
+namespace Joveler.ZLibWrapper.Tests
 {
     [TestClass]
     public class ZLibCompressorsTests
@@ -14,18 +14,14 @@ namespace ZLibWrapper.Tests
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (MemoryStream compMs = DeflateCompressor.Compress(fs))
+            using (MemoryStream decompMs = DeflateCompressor.Decompress(compMs))
             {
-                using (MemoryStream compMs = DeflateCompressor.Compress(fs))
-                {
-                    using (MemoryStream decompMs = DeflateCompressor.Decompress(compMs))
-                    {
-                        // Compare SHA256 Digest
-                        fs.Position = 0;
-                        byte[] fileDigest = TestHelper.SHA256Digest(fs);
-                        byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
-                        Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
-                    }
-                }
+                // Compare SHA256 Digest
+                fs.Position = 0;
+                byte[] fileDigest = TestHelper.SHA256Digest(fs);
+                byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
+                Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
             }
         }
 
@@ -77,14 +73,12 @@ namespace ZLibWrapper.Tests
             string decompPath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream decompFs = new FileStream(decompPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream compFs = new FileStream(compPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (MemoryStream decompMs = DeflateCompressor.Decompress(compFs))
             {
-                using (MemoryStream decompMs = DeflateCompressor.Decompress(compFs))
-                {
-                    // Compare SHA256 Digest
-                    byte[] fileDigest = TestHelper.SHA256Digest(decompFs);
-                    byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
-                    Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
-                }
+                // Compare SHA256 Digest
+                byte[] fileDigest = TestHelper.SHA256Digest(decompFs);
+                byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
+                Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
             }
         }
 
@@ -114,12 +108,9 @@ namespace ZLibWrapper.Tests
         public void DeflateStream_Decompressor_4()
         {
             byte[] input = new byte[] { 0x73, 0x74, 0x72, 0x76, 0x71, 0x75, 0x03, 0x00 };
-            using (MemoryStream decompMs = new MemoryStream())
-            {
-                byte[] plaintext = Encoding.UTF8.GetBytes("ABCDEF");
-                byte[] decompBytes = DeflateCompressor.Decompress(input);
-                Assert.IsTrue(decompBytes.SequenceEqual(plaintext));
-            }
+            byte[] plaintext = Encoding.UTF8.GetBytes("ABCDEF");
+            byte[] decompBytes = DeflateCompressor.Decompress(input);
+            Assert.IsTrue(decompBytes.SequenceEqual(plaintext));
         }
         #endregion
 
@@ -128,18 +119,14 @@ namespace ZLibWrapper.Tests
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (MemoryStream compMs = ZLibCompressor.Compress(fs))
+            using (MemoryStream decompMs = ZLibCompressor.Decompress(compMs))
             {
-                using (MemoryStream compMs = ZLibCompressor.Compress(fs))
-                {
-                    using (MemoryStream decompMs = ZLibCompressor.Decompress(compMs))
-                    {
-                        // Compare SHA256 Digest
-                        fs.Position = 0;
-                        byte[] fileDigest = TestHelper.SHA256Digest(fs);
-                        byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
-                        Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
-                    }
-                }
+                // Compare SHA256 Digest
+                fs.Position = 0;
+                byte[] fileDigest = TestHelper.SHA256Digest(fs);
+                byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
+                Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
             }
         }
 
@@ -191,14 +178,12 @@ namespace ZLibWrapper.Tests
             string decompPath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream decompFs = new FileStream(decompPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream compFs = new FileStream(compPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (MemoryStream decompMs = ZLibCompressor.Decompress(compFs))
             {
-                using (MemoryStream decompMs = ZLibCompressor.Decompress(compFs))
-                {
-                    // Compare SHA256 Digest
-                    byte[] fileDigest = TestHelper.SHA256Digest(decompFs);
-                    byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
-                    Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
-                }
+                // Compare SHA256 Digest
+                byte[] fileDigest = TestHelper.SHA256Digest(decompFs);
+                byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
+                Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
             }
         }
 
@@ -228,12 +213,9 @@ namespace ZLibWrapper.Tests
         public void ZLibStream_Decompressor_4()
         {
             byte[] input = new byte[] { 0x78, 0x9C, 0x73, 0x74, 0x72, 0x76, 0x71, 0x75, 0x03, 0x00, 0x05, 0x7E, 0x01, 0x96 };
-            using (MemoryStream decompMs = new MemoryStream())
-            {
-                byte[] plaintext = Encoding.UTF8.GetBytes("ABCDEF");
-                byte[] decompBytes = ZLibCompressor.Decompress(input);
-                Assert.IsTrue(decompBytes.SequenceEqual(plaintext));
-            }
+            byte[] plaintext = Encoding.UTF8.GetBytes("ABCDEF");
+            byte[] decompBytes = ZLibCompressor.Decompress(input);
+            Assert.IsTrue(decompBytes.SequenceEqual(plaintext));
         }
         #endregion
 
@@ -242,18 +224,14 @@ namespace ZLibWrapper.Tests
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (MemoryStream compMs = GZipCompressor.Compress(fs))
+            using (MemoryStream decompMs = GZipCompressor.Decompress(compMs))
             {
-                using (MemoryStream compMs = GZipCompressor.Compress(fs))
-                {
-                    using (MemoryStream decompMs = GZipCompressor.Decompress(compMs))
-                    {
-                        // Compare SHA256 Digest
-                        fs.Position = 0;
-                        byte[] fileDigest = TestHelper.SHA256Digest(fs);
-                        byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
-                        Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
-                    }
-                }
+                // Compare SHA256 Digest
+                fs.Position = 0;
+                byte[] fileDigest = TestHelper.SHA256Digest(fs);
+                byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
+                Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
             }
         }
 
@@ -305,14 +283,12 @@ namespace ZLibWrapper.Tests
             string decompPath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream decompFs = new FileStream(decompPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream compFs = new FileStream(compPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (MemoryStream decompMs = GZipCompressor.Decompress(compFs))
             {
-                using (MemoryStream decompMs = GZipCompressor.Decompress(compFs))
-                {
-                    // Compare SHA256 Digest
-                    byte[] fileDigest = TestHelper.SHA256Digest(decompFs);
-                    byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
-                    Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
-                }
+                // Compare SHA256 Digest
+                byte[] fileDigest = TestHelper.SHA256Digest(decompFs);
+                byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
+                Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
             }
         }
 
@@ -342,12 +318,9 @@ namespace ZLibWrapper.Tests
         public void GZipStream_Decompressor_4()
         {
             byte[] input = new byte[] { 0x1F, 0x8B, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x73, 0x74, 0x72, 0x76, 0x71, 0x75, 0x03, 0x00, 0x69, 0xFE, 0x76, 0xBB, 0x06, 0x00, 0x00, 0x00 };
-            using (MemoryStream decompMs = new MemoryStream())
-            {
-                byte[] plaintext = Encoding.UTF8.GetBytes("ABCDEF");
-                byte[] decompBytes = GZipCompressor.Decompress(input);
-                Assert.IsTrue(decompBytes.SequenceEqual(plaintext));
-            }
+            byte[] plaintext = Encoding.UTF8.GetBytes("ABCDEF");
+            byte[] decompBytes = GZipCompressor.Decompress(input);
+            Assert.IsTrue(decompBytes.SequenceEqual(plaintext));
         }
         #endregion
     }

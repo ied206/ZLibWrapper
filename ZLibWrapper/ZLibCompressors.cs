@@ -27,7 +27,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace ZLibWrapper
+namespace Joveler.ZLibWrapper
 {
 	/// <summary>
 	/// Classes that simplify a common use of compression streams

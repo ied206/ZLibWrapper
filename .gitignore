@@ -4,6 +4,7 @@
 # Joveler-specific Resoures
 res/
 TestResults/
+*.Exclude
 
 # User-specific files
 *.suo
@@ -27,8 +28,8 @@ bld/
 [Oo]bj/
 
 # Do not ignore Precompiled directory
-!/ZLibWrapper/x86/
-!/ZLibWrapper/x64/
+!/ZLibWrapper/Precompiled/x86/
+!/ZLibWrapper/Precompiled/x64/
 
 # Visual Studio 2015 cache/options directory
 .vs/

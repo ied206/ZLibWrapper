@@ -48,15 +48,15 @@
     <Compile Include="ZLibStreams.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="x86\zlibwapi.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="x64\zlibwapi.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="ZLibWrapper.nuspec" />
+    <None Include="Precompiled\x86\zlibwapi.dll">
+      <Link>x86\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\x64\zlibwapi.dll">
+      <Link>x64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

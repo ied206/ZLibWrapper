@@ -26,7 +26,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
-namespace ZLibWrapper
+namespace Joveler.ZLibWrapper
 {
     #region DeflateStream
     /// <summary>Provides methods and properties used to compress and decompress streams.</summary>

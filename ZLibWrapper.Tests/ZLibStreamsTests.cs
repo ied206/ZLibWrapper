@@ -1,12 +1,10 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ZLibWrapper;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ZLibWrapper.Tests
+namespace Joveler.ZLibWrapper.Tests
 {
     [TestClass]
     public class ZLibStreamsTests

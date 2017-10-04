@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.IO;
@@ -32,7 +31,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Security.Permissions;
 using System.ComponentModel;
 
-namespace ZLibWrapper
+namespace Joveler.ZLibWrapper
 {
     #region SafeLibraryHandle
     [SecurityPermission(SecurityAction.InheritanceDemand, UnmanagedCode = true)]
@@ -107,6 +106,17 @@ namespace ZLibWrapper
                 {
                     AssemblyCleanup();
                     throw new ArgumentException($"[{dllPath}] is not valid zlibwapi.dll");
+                }
+
+                // Check if dll is valid provided zlibwapi.dll
+                if (ZLibProvided)
+                {
+                    if (GetProcAddress(hModule, "adler32") == IntPtr.Zero ||
+                        GetProcAddress(hModule, "crc32") == IntPtr.Zero)
+                    {
+                        AssemblyCleanup();
+                        throw new ArgumentException($"[{dllPath}] is not valid zlibwapi.dll");
+                    }
                 }
 
                 try
@@ -361,6 +371,8 @@ namespace ZLibWrapper
         {
             next_in = IntPtr.Zero;
             next_out = IntPtr.Zero;
+
+            msg = IntPtr.Zero;
             state = IntPtr.Zero;
 
             zalloc = IntPtr.Zero;

@@ -29,7 +29,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
-namespace ZLibWrapper
+namespace Joveler.ZLibWrapper
 {
     #region Crc32Stream
     public class Crc32Stream : Stream
@@ -71,7 +71,7 @@ namespace ZLibWrapper
 
         public uint Crc32 => crc32;
 
-        public uint Digest => crc32;
+        public uint Checksum => crc32;
 
         public override bool CanRead => baseStream.CanRead;
 
@@ -141,7 +141,7 @@ namespace ZLibWrapper
 
         public uint Adler32 => adler32;
 
-        public uint Digest => adler32;
+        public uint Checksum => adler32;
 
         public override bool CanRead => baseStream.CanRead;
 
