@@ -12,10 +12,13 @@
     <description>C# wrapper library for native zlib.
 Provides improved DeflateStream, ZLibStream, GZipStream and Adler32Stream, Crc32Stream.</description>
     <summary>C# wrapper library for native zlib.</summary>
-    <releaseNotes>Initial release</releaseNotes>
+    <releaseNotes>- Multi target .Net Framework 4.0 and .Net Framework 4.5
+- Change namespace to 'Joveler.ZLibWrapper' from 'ZLibWrapper'
+- Improved copy of embedded precompiled binaries</releaseNotes>
     <copyright>Copyright (c) 2017 Hajin Jang</copyright>
     <tags>zlib deflate gzip adler32 crc32</tags>
     <dependencies>
+      <group targetFramework="net40"></group>
       <group targetFramework="net45"></group>
     </dependencies>
   </metadata>
