@@ -3,7 +3,7 @@ using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Security.Cryptography;
 
-namespace ZLibWrapper.Tests
+namespace Joveler.ZLibWrapper.Tests
 {
     [TestClass]
     public class TestHelper

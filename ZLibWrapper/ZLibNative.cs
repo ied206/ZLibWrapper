@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.IO;
@@ -32,7 +31,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Security.Permissions;
 using System.ComponentModel;
 
-namespace ZLibWrapper
+namespace Joveler.ZLibWrapper
 {
     #region SafeLibraryHandle
     [SecurityPermission(SecurityAction.InheritanceDemand, UnmanagedCode = true)]
@@ -84,10 +83,15 @@ namespace ZLibWrapper
             if (hModule == null)
             {
                 if (dllPath == null)
-                { // Use .Net Framework's clrcompression instead
+                {
+#if NET40
+                    throw new ArgumentException("Please provide zlibwapi.dll");
+#else
+                    // Use .Net Framework's clrcompression instead
                     string fxDir = RuntimeEnvironment.GetRuntimeDirectory();
                     dllPath = Path.Combine(fxDir, "clrcompression.dll");
                     ZLibProvided = false;
+#endif
                 }
                 else if (!File.Exists(dllPath))
                 { // Check 
@@ -107,6 +111,17 @@ namespace ZLibWrapper
                 {
                     AssemblyCleanup();
                     throw new ArgumentException($"[{dllPath}] is not valid zlibwapi.dll");
+                }
+
+                // Check if dll is valid provided zlibwapi.dll
+                if (ZLibProvided)
+                {
+                    if (GetProcAddress(hModule, "adler32") == IntPtr.Zero ||
+                        GetProcAddress(hModule, "crc32") == IntPtr.Zero)
+                    {
+                        AssemblyCleanup();
+                        throw new ArgumentException($"[{dllPath}] is not valid zlibwapi.dll");
+                    }
                 }
 
                 try
@@ -202,9 +217,9 @@ namespace ZLibWrapper
             Adler32 = null;
             Crc32 = null;
         }
-        #endregion
+#endregion
 
-        #region zlib Functions Delegates
+#region zlib Functions Delegates
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int deflateInit2_Delegate(
             ZStream strm,
@@ -271,11 +286,11 @@ namespace ZLibWrapper
             IntPtr buf,
             uint len);
         internal static crc32Delegate Crc32;
-        #endregion
+#endregion
     }
-    #endregion
+#endregion
 
-    #region zlib Enums
+#region zlib Enums
     internal enum ZLibFlush : int
 	{
 		Z_NO_FLUSH = 0,
@@ -351,9 +366,9 @@ namespace ZLibWrapper
 		Level8 = 8,
 		Level9 = 9,
 	}
-    #endregion
+#endregion
 
-    #region z_stream
+#region z_stream
     [StructLayout(LayoutKind.Sequential)]
     internal class ZStream
     {
@@ -361,6 +376,8 @@ namespace ZLibWrapper
         {
             next_in = IntPtr.Zero;
             next_out = IntPtr.Zero;
+
+            msg = IntPtr.Zero;
             state = IntPtr.Zero;
 
             zalloc = IntPtr.Zero;
@@ -389,9 +406,9 @@ namespace ZLibWrapper
 
         public string LastErrorMsg => Marshal.PtrToStringAnsi(msg);
     }
-    #endregion
+#endregion
 
-    #region zlib Return Code
+#region zlib Return Code
     internal static class ZLibReturnCode
 	{
 		public const int OK = 0;
@@ -431,9 +448,9 @@ namespace ZLibWrapper
 			}
 		}
 	}
-    #endregion
+#endregion
 
-    #region ZLibException
+#region ZLibException
     [Serializable]
 	public class ZLibException : ApplicationException
 	{
@@ -461,9 +478,9 @@ namespace ZLibWrapper
 			return msg;
 		}
 	}
-    #endregion
+#endregion
 
-    #region PinnedArray
+#region PinnedArray
     internal class PinnedArray : IDisposable
     {
         internal GCHandle hBuffer;
@@ -489,5 +506,5 @@ namespace ZLibWrapper
             GC.SuppressFinalize(this);
         }
     }
-    #endregion
+#endregion
 }

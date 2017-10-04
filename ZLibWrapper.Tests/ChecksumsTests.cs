@@ -1,11 +1,9 @@
 ﻿using System;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ZLibWrapper;
 using System.Text;
-using System.Security.Cryptography;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ZLibWrapper.Tests
+namespace Joveler.ZLibWrapper.Tests
 {
     [TestClass]
     public class ChecksumsTests
@@ -23,7 +21,7 @@ namespace ZLibWrapper.Tests
                 using (Crc32Stream crc = new Crc32Stream(ms))
                 {
                     fs.CopyTo(crc);
-                    Assert.IsTrue(crc.Digest == 0x1961D0C6);
+                    Assert.IsTrue(crc.Checksum == 0x1961D0C6);
                 }
             }
         }
@@ -40,7 +38,7 @@ namespace ZLibWrapper.Tests
                 using (Crc32Stream crc = new Crc32Stream(ms))
                 {
                     fs.CopyTo(crc);
-                    Assert.IsTrue(crc.Digest == 0x7641A243);
+                    Assert.IsTrue(crc.Checksum == 0x7641A243);
                 }
             }
         }
@@ -57,7 +55,7 @@ namespace ZLibWrapper.Tests
                 using (Crc32Stream crc = new Crc32Stream(ms))
                 {
                     fs.CopyTo(crc);
-                    Assert.IsTrue(crc.Digest == 0x63D4D64B);
+                    Assert.IsTrue(crc.Checksum == 0x63D4D64B);
                 }
             }
         }
@@ -73,7 +71,7 @@ namespace ZLibWrapper.Tests
                 {
                     byte[] bin = Encoding.UTF8.GetBytes("ABCDEF");
                     crc.Write(bin, 0, bin.Length);
-                    Assert.IsTrue(crc.Digest == 0xBB76FE69);
+                    Assert.IsTrue(crc.Checksum == 0xBB76FE69);
                 }
             }
         }
