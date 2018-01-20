@@ -18,7 +18,7 @@
     to disable copying precompiled zlib binaries.
   -->
   <PropertyGroup>
-    <ExcludePrecompiled Condition="Exists('$(MSBuildProjectDirectory)\Joveler.ZLibWrapper.Precompiled.Exclude')">true</ExcludePrecompiled>
+    <ExcludePrecompiledZLib Condition="Exists('$(MSBuildProjectDirectory)\Joveler.ZLibWrapper.Precompiled.Exclude')">true</ExcludePrecompiledZLib>
   </PropertyGroup>
 
  <!--
@@ -28,7 +28,7 @@
   -->
 
   <ItemGroup>
-    <ZLibInteropFiles Condition="'$(ExcludePrecompiled)' != 'true' And 
+    <ZLibInteropFiles Condition="'$(ExcludePrecompiledZLib)' != 'true' And 
                                   '$(MSBuildThisFileDirectory)' != '' And
                                    HasTrailingSlash('$(MSBuildThisFileDirectory)')"
                         Include="$(MSBuildThisFileDirectory)Precompiled\**\zlibwapi.dll" />
@@ -40,7 +40,7 @@
   ******************************************************************************
   -->
 
-  <ItemGroup Condition="'$(ExcludePrecompiled)' != 'true' And 
+  <ItemGroup Condition="'$(ExcludePrecompiledZLib)' != 'true' And 
                         '@(ZLibInteropFiles)' != ''">
     <None Include="@(ZLibInteropFiles)">
       <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>

@@ -217,9 +217,17 @@ namespace Joveler.ZLibWrapper
             Adler32 = null;
             Crc32 = null;
         }
-#endregion
+        #endregion
 
-#region zlib Functions Delegates
+        #region CheckLoaded_UserProvidedZLib
+        internal static void CheckLoaded_UserProvidedZLib()
+        {
+            if ((ZLibNative.Loaded && !ZLibNative.ZLibProvided) || !ZLibNative.Loaded)
+                throw new InvalidOperationException("Init ZLibWrapper first with user provided zlibwapi.dll");
+        }
+        #endregion 
+
+        #region zlib Functions Delegates
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         internal delegate int deflateInit2_Delegate(
             ZStream strm,
@@ -286,11 +294,11 @@ namespace Joveler.ZLibWrapper
             IntPtr buf,
             uint len);
         internal static crc32Delegate Crc32;
-#endregion
+        #endregion
     }
-#endregion
+    #endregion
 
-#region zlib Enums
+    #region zlib Enums
     internal enum ZLibFlush : int
 	{
 		Z_NO_FLUSH = 0,
@@ -366,9 +374,9 @@ namespace Joveler.ZLibWrapper
 		Level8 = 8,
 		Level9 = 9,
 	}
-#endregion
+    #endregion
 
-#region z_stream
+    #region ZStream
     [StructLayout(LayoutKind.Sequential)]
     internal class ZStream
     {
@@ -406,9 +414,9 @@ namespace Joveler.ZLibWrapper
 
         public string LastErrorMsg => Marshal.PtrToStringAnsi(msg);
     }
-#endregion
+    #endregion
 
-#region zlib Return Code
+    #region zlib Return Code
     internal static class ZLibReturnCode
 	{
 		public const int OK = 0;
@@ -448,9 +456,9 @@ namespace Joveler.ZLibWrapper
 			}
 		}
 	}
-#endregion
+    #endregion
 
-#region ZLibException
+    #region ZLibException
     [Serializable]
 	public class ZLibException : ApplicationException
 	{
@@ -478,9 +486,9 @@ namespace Joveler.ZLibWrapper
 			return msg;
 		}
 	}
-#endregion
+    #endregion
 
-#region PinnedArray
+    #region PinnedArray
     internal class PinnedArray : IDisposable
     {
         internal GCHandle hBuffer;
@@ -506,5 +514,5 @@ namespace Joveler.ZLibWrapper
             GC.SuppressFinalize(this);
         }
     }
-#endregion
+    #endregion
 }

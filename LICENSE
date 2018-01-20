@@ -1,6 +1,6 @@
 ZLibWrapper is licensed under zlib license:
   
-  Copyright (C) 2017 Hajin Jang
+  Copyright (C) 2017-2018 Hajin Jang
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -52,7 +52,7 @@ https://zlibnet.codeplex.com/
 
 --------------------------------------------------------------------------------
 ZLibWrapper's initial stream implementations are based on zlibnet,
-and it was ported from .NET managed C++ zlib wrapper, ManagedZLib:
+which was ported from .NET managed C++ zlib wrapper, ManagedZLib.
 http://zlibnetwrapper.sourceforge.net
 
 ZLib .NET Wrapper - Version 1.1.1, May 31st, 2005
@@ -70,4 +70,4 @@ There were no changes made to the ZLib source (thus the version number
 of ZLib was not changed).
 
 This software is released under the same ZLib license as the ZLib
-source itself:
+source itself.
