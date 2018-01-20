@@ -12,7 +12,7 @@
     <description>C# wrapper library for native zlib.
 Provides improved DeflateStream, ZLibStream, GZipStream and Adler32Stream, Crc32Stream.</description>
     <summary>C# wrapper library for native zlib.</summary>
-    <releaseNotes>- Added checksum static wrapper methods accepting Stream</releaseNotes>
+    <releaseNotes>- Added static wrapper methods accpet Stream to Crc32Checksum and Adler32Checksum</releaseNotes>
     <copyright>Copyright (c) 2017-2018 Hajin Jang</copyright>
     <tags>zlib deflate gzip adler32 crc32</tags>
     <dependencies>
