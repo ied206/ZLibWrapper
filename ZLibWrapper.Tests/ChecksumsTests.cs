@@ -152,6 +152,70 @@ namespace Joveler.ZLibWrapper.Tests
                 Assert.IsTrue(checksum == 0xBB76FE69); // ABCDEF
             }
         }
+
+        [TestMethod]
+        [TestCategory("Crc32Checksum")]
+        public void Crc32Checksum_6()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                byte[] sample = Encoding.UTF8.GetBytes("ABCDEF");
+
+                uint checksum = Crc32Checksum.Crc32(sample, 1, 3); 
+                Assert.IsTrue(checksum == 0x26BA19F3); // BCD
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Crc32Checksum")]
+        public void Crc32Checksum_7()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                string filePath = Path.Combine(TestHelper.BaseDir, "ex3.jpg");
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    uint checksum = Crc32Checksum.Crc32(fs);
+                    Assert.IsTrue(checksum == 0x63D4D64B);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Crc32Checksum")]
+        public void Crc32Checksum_8()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                byte[] sample1 = Encoding.UTF8.GetBytes("ABC");
+                byte[] sample2 = Encoding.UTF8.GetBytes("DEF");
+
+                using (MemoryStream ms1 = new MemoryStream(sample1))
+                using (MemoryStream ms2 = new MemoryStream(sample2))
+                {
+                    uint checksum = Crc32Checksum.Crc32(ms1);
+                    Assert.IsTrue(checksum == 0xA3830348); // ABC
+                    checksum = Crc32Checksum.Crc32(checksum, ms2);
+                    Assert.IsTrue(checksum == 0xBB76FE69); // ABCDEF
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Crc32Checksum")]
+        public void Crc32Checksum_9()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                byte[] sample = Encoding.UTF8.GetBytes("ABCDEF");
+
+                using (MemoryStream ms = new MemoryStream(sample))
+                {
+                    uint checksum = Crc32Checksum.Crc32(ms, 1, 3);
+                    Assert.IsTrue(checksum == 0x26BA19F3); // BCD
+                }
+            }
+        }
         #endregion
 
         #region Adler32Stream
@@ -296,6 +360,70 @@ namespace Joveler.ZLibWrapper.Tests
                 Assert.IsTrue(checksum == 0x018D00C7); // ABC
                 checksum = Adler32Checksum.Adler32(checksum, Encoding.UTF8.GetBytes("DEF"));
                 Assert.IsTrue(checksum == 0x057E0196); // ABCDEF
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Adler32Checksum")]
+        public void Adler32Checksum_6()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                byte[] sample = Encoding.UTF8.GetBytes("ABCDEF");
+
+                uint checksum = Adler32Checksum.Adler32(sample, 1, 3);
+                Assert.IsTrue(checksum == 0x019300CA); // BCD
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Adler32Checksum")]
+        public void Adler32Checksum_7()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                string filePath = Path.Combine(TestHelper.BaseDir, "ex3.jpg");
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    uint checksum = Adler32Checksum.Adler32(fs);
+                    Assert.IsTrue(checksum == 0x94B04C6F);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Adler32Checksum")]
+        public void Adler32Checksum_8()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                byte[] sample1 = Encoding.UTF8.GetBytes("ABC");
+                byte[] sample2 = Encoding.UTF8.GetBytes("DEF");
+
+                using (MemoryStream ms1 = new MemoryStream(sample1))
+                using (MemoryStream ms2 = new MemoryStream(sample2))
+                {
+                    uint checksum = Adler32Checksum.Adler32(ms1);
+                    Assert.IsTrue(checksum == 0x018D00C7); // ABC
+                    checksum = Adler32Checksum.Adler32(checksum, ms2);
+                    Assert.IsTrue(checksum == 0x057E0196); // ABCDEF
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Adler32Checksum")]
+        public void Adler32Checksum_9()
+        {
+            if (ZLibNative.ZLibProvided)
+            {
+                byte[] sample = Encoding.UTF8.GetBytes("ABCDEF");
+
+                using (MemoryStream ms = new MemoryStream(sample))
+                {
+                    uint checksum = Adler32Checksum.Adler32(ms, 1, 3);
+                    Assert.IsTrue(checksum == 0x019300CA); // BCD
+                }
             }
         }
         #endregion
