@@ -10,8 +10,7 @@ cd %~dp0
 SET SOLUTION="%cd%\..\ZLibWrapper.sln"
 SET NUGET="%cd%\..\res\nuget.exe"
 
-%MSBUILD_PATH%\MSBuild.exe %SOLUTION% /p:Configuration=Release_NET40 /target:Rebuild
-%MSBUILD_PATH%\MSBuild.exe %SOLUTION% /p:Configuration=Release_NET45 /target:Rebuild
+%MSBUILD_PATH%\MSBuild.exe %SOLUTION% /p:Configuration=Release /target:Rebuild
 
 %NUGET% pack ZLibWrapper.nuspec
 

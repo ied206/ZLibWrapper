@@ -11,7 +11,7 @@ Personal recommendation is case 1, since it provides newer version of zlib while
 ZLibWrapper contains `zlibwapi.dll`, precompiled binaries of `zlib 1.2.11`.<br>
 They will be copied into `$(OutDir)\x86\zlibwpi.all` and `$(OutDir)\x64\zlibwpi.all` at build.
 
-To use `zlibwapi.dll`, call `ZLibNative.AssemblyInit(path_to_zlibwapi_dll)` explicitly at App's init code.
+To use `zlibwapi.dll`, call `ZLibInit.GlobalInit()` explicitly at App's init code.
 
 **WARNING**: Architecture of `zlibwapi.dll` must be matched with caller!
 
@@ -33,19 +33,18 @@ else // This app is running on 32bit .Net Framework
 Starting from .Net Framework 4.5, .Net has its own copy of zlib, named `clrcompression.dll`.<br>
 It is stripped version of zlib, which is used in `System.IO.Compression.DeflateStream`.
 
-If ZLibWrapper is used in .Net Framework 4.5 or later without explicit initialization, `clrcompression.dll` is used by default.
+If ZLibWrapper is used without explicit initialization, `clrcompression.dll` is used by default.
 
 #### Limitation
 
 - Since `clrcompression.dll` does not expose `adler32()` and `crc32()`, checksum calculation feature will be disabled.
-- Application built for .Net Framework 4.0 cannot use this method.
 - `clrcompression.dll` is based on quite old version of zlib (at least in .Net Framework 4.7).
 
 ### Case 3 : Custom zlib
 
 You may want to use custom zlib because of several reasons.
 
-In this case, call `ZLibNative.AssemblyInit` with path to custom `zlibwapi.dll`.
+In this case, call `ZLibInit.GlobalInit()` with path to custom `zlibwapi.dll`.
 
 NOTE:
 ZLibWrapper can only recognize `zlibwapi.dll`, not `zlib1.dll`.<br>
@@ -56,7 +55,7 @@ To do so, create empty file named `Joveler.ZLibWrapper.Precompiled.Exclude` in p
 
 ## Cleanup
 
-To unload zlib dll explicitly, call `ZLibNative.AssemblyCleanup()`.
+To unload zlib dll explicitly, call `ZLibInit.GlobalCleanup()`.
 
 **NOTE**: Loading and unloading dll too often can impact performance.
 
@@ -82,12 +81,12 @@ using (DeflateStream zs = new DeflateStream(fsComp, CompressionMode.Compress, Co
 `ZLibWrapper.CompressionLevel` has more option compared to `System.IO.Compression.CompressionLevel`:
 
 ```cs
-public enum CompressionLevel : int
+public enum ZLibCompLevel : int
 {
-    NoCompression = 0,
-    Fastest = 1,
-    Best = 9,
     Default = -1,
+    NoCompression = 0,
+    BestSpeed = 1,
+    BestCompression = 9,
     Level0 = 0,
     Level1 = 1,
     Level2 = 2,

@@ -49,6 +49,7 @@ https://zlib.net
 --------------------------------------------------------------------------------
 This library is based on zlibnet, work of @hardon:
 https://zlibnet.codeplex.com/
+https://www.codeplex.com/site/users/view/hardon
 
 --------------------------------------------------------------------------------
 ZLibWrapper's initial stream implementations are based on zlibnet,
