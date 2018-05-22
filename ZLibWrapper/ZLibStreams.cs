@@ -1,417 +1,377 @@
 ﻿/*
- * Forked from zlibnet v1.3.3
- * https://zlibnet.codeplex.com/
- * 
- * Licensed under zlib license.
- * 
- * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
- * arising from the use of this software.
- *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
- *
- * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software. If you use this software
- *    in a product, an acknowledgment in the product documentation would be
- *    appreciated but is not required.
- * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.
- * 3. This notice may not be removed or altered from any source distribution.
- */
+    Derived from zlib header files (zlib license)
+    Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
+
+    C# Wrapper based on zlibnet v1.3.3 (https://zlibnet.codeplex.com/)
+    Copyright (C) @hardon (https://www.codeplex.com/site/users/view/hardon)
+    Copyright (C) 2017-2018 Hajin Jang
+
+    zlib license
+
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
+*/
 
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 
 namespace Joveler.ZLibWrapper
 {
     #region DeflateStream
-    /// <summary>Provides methods and properties used to compress and decompress streams.</summary>
     public class DeflateStream : Stream
-    { 
-		long _bytesIn = 0;
-		long _bytesOut = 0;
-		bool _success = false;
-		
-		private Stream _stream;
-		private CompressionMode _compMode;
+    {
+        #region Fields
+        private Stream _baseStream;
+        private readonly ZLibMode _mode;
+        private readonly bool _leaveOpen;
+        private bool _disposed = false;
+
         private ZStream _zstream;
         private GCHandle _zstreamPtr;
-        private bool _leaveOpen;
 
-        // Dispose Pattern
-        private bool _zstreamDisposed = false;
-        private bool _zstreamPtrDisposed = false;
+        protected virtual ZLibOpenType OpenType => ZLibOpenType.Deflate;
+        protected virtual ZLibWriteType WriteType => ZLibWriteType.Deflate;
 
-        const int WORK_DATA_SIZE = 0x1000;
-		byte[] _workData = new byte[WORK_DATA_SIZE];
-		int _workDataPos = 0;
+        private readonly byte[] _internalBuf;
+        private int _internalBufPos = 0;
+        #endregion
 
-		public DeflateStream(Stream stream, CompressionMode mode)
-			: this(stream, mode, CompressionLevel.Default, false)
-		{
-		}
+        #region Properties
+        public long TotalIn { get; private set; } = 0;
+        public long TotalOut { get; private set; } = 0;
+        public Stream BaseStream => _baseStream;
+        #endregion
 
-		public DeflateStream(Stream stream, CompressionMode mode, bool leaveOpen) :
-			this(stream, mode, CompressionLevel.Default, leaveOpen)
-		{
-        }
+        #region Constructor
+        public DeflateStream(Stream stream, ZLibMode mode)
+            : this(stream, mode, ZLibCompLevel.Default, false) { }
 
-		public DeflateStream(Stream stream, CompressionMode mode, CompressionLevel level) :
-			this(stream, mode, level, false)
-		{
-        }
+        public DeflateStream(Stream stream, ZLibMode mode, ZLibCompLevel level) :
+            this(stream, mode, level, false)
+        { }
 
-		public DeflateStream(Stream stream, CompressionMode mode, CompressionLevel level, bool leaveOpen)
-		{
-            if (ZLibNative.Loaded == false)
-                ZLibNative.AssemblyInit(); 
+        public DeflateStream(Stream stream, ZLibMode mode, bool leaveOpen) :
+            this(stream, mode, ZLibCompLevel.Default, leaveOpen)
+        { }
+
+        [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
+        public DeflateStream(Stream stream, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
+        {
+            NativeMethods.CheckZLibLoaded();
 
             _zstream = new ZStream();
             _zstreamPtr = GCHandle.Alloc(_zstream, GCHandleType.Pinned);
 
             _leaveOpen = leaveOpen;
-			_stream = stream;
-			_compMode = mode;
-            _workDataPos = 0;
+            _baseStream = stream;
+            _mode = mode;
+            _internalBufPos = 0;
 
-            int ret;
-			if (this._compMode == CompressionMode.Compress)
-				ret = ZLibNative.DeflateInit(_zstream, level, WriteType);
-			else
-				ret = ZLibNative.InflateInit(_zstream, OpenType);
+            Debug.Assert(0 < NativeMethods.BufferSize, "Internal Logic Error at DeflateStream");
+            _internalBuf = new byte[NativeMethods.BufferSize];
 
-			if (ret != ZLibReturnCode.OK)
-				throw new ZLibException(ret, _zstream.LastErrorMsg);
+            ZLibReturnCode ret;
+            if (_mode == ZLibMode.Compress)
+                ret = NativeMethods.DeflateInit(_zstream, level, WriteType);
+            else
+                ret = NativeMethods.InflateInit(_zstream, OpenType);
 
-            _success = true;
-		}
+            ZLibException.CheckZLibOK(ret, _zstream);
+        }
+        #endregion
 
         #region Disposable Pattern
         ~DeflateStream()
-		{
-        	this.Dispose(false);
-		}
+        {
+            Dispose(false);
+        }
 
         protected override void Dispose(bool disposing)
-		{
-            if (disposing)
+        {
+            if (disposing && !_disposed)
             {
-                if (_stream != null)
+                if (_baseStream != null)
                 {
-                    if (_compMode == CompressionMode.Compress && _success)
+                    if (_mode == ZLibMode.Compress)
                         Flush();
                     if (!_leaveOpen)
-                        _stream.Close();
-                    _stream = null;
+                        _baseStream.Close();
+                    _baseStream = null;
                 }
 
-                if (_zstreamDisposed == false)
+                if (_zstream != null)
                 {
-                    if (this._compMode == CompressionMode.Compress)
-                        ZLibNative.DeflateEnd(_zstream);
+                    if (_mode == ZLibMode.Compress)
+                        NativeMethods.DeflateEnd(_zstream);
                     else
-                        ZLibNative.InflateEnd(_zstream);
-                    _zstreamDisposed = true;
+                        NativeMethods.InflateEnd(_zstream);
+                    _zstreamPtr.Free();
+                    _zstream = null;
                 }
 
-                if (_zstreamPtrDisposed == false)
-                {
-                    _zstreamPtr.Free();
-                    _zstreamPtrDisposed = true;
-                }
+                _disposed = true;
             }
-		}
+        }
         #endregion
 
-        protected virtual ZLibOpenType OpenType => ZLibOpenType.Deflate;
-
-		protected virtual ZLibWriteType WriteType => ZLibWriteType.Deflate;
-
+        #region ValidateReadWriteArgs
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void ValidateReadWriteArgs(byte[] buffer, int offset, int count)
         {
             if (buffer == null)
-                throw new ArgumentNullException("buffer");
-
+                throw new ArgumentNullException(nameof(buffer));
             if (offset < 0)
-                throw new ArgumentException("[offset] must be positive integer or 0");
-
+                throw new ArgumentOutOfRangeException(nameof(offset));
             if (count < 0)
-                throw new ArgumentException("[count] must be positive integer or 0");
-
+                throw new ArgumentOutOfRangeException(nameof(count));
             if (buffer.Length - offset < count)
-                throw new ArgumentException("[count + offset] should be longer than [buffer.Length]");
+                throw new ArgumentOutOfRangeException(nameof(count));
         }
+        #endregion
 
-        /// <summary>Reads a number of decompressed bytes into the specified byte array.</summary>
-        /// <param name="array">The array used to store decompressed bytes.</param>
-        /// <param name="offset">The location in the array to begin reading.</param>
-        /// <param name="count">The number of bytes decompressed.</param>
-        /// <returns>The number of bytes that were decompressed into the byte array. If the end of the stream has been reached, zero or the number of bytes read is returned.</returns>
+        #region Stream Methods
         public override int Read(byte[] buffer, int offset, int count)
-		{
-			if (_compMode != CompressionMode.Decompress)
-				throw new NotSupportedException("Can't read on a compress stream!");
+        {
+            if (_mode != ZLibMode.Decompress)
+                throw new NotSupportedException("Read() not supported on compression");
 
             ValidateReadWriteArgs(buffer, offset, count);
 
             int readLen = 0;
-            if (_workDataPos != -1)
+            if (_internalBufPos != -1)
             {
-                using (PinnedArray workDataPtr = new PinnedArray(_workData)) // [In] Compressed
-                using (PinnedArray bufferPtr = new PinnedArray(buffer)) // [Out] Will-be-decompressed
+                using (PinnedArray pinRead = new PinnedArray(_internalBuf)) // [In] Compressed
+                using (PinnedArray pinWrite = new PinnedArray(buffer)) // [Out] Will-be-decompressed
                 {
-                    _zstream.next_in = workDataPtr[_workDataPos];
-                    _zstream.next_out = bufferPtr[offset];
-                    _zstream.avail_out = (uint)count;
+                    _zstream.NextIn = pinRead[_internalBufPos];
+                    _zstream.NextOut = pinWrite[offset];
+                    _zstream.AvailOut = (uint)count;
 
-                    while (0 < _zstream.avail_out)
+                    while (0 < _zstream.AvailOut)
                     {
-                        if (_zstream.avail_in == 0)
+                        if (_zstream.AvailIn == 0)
                         { // Compressed Data is no longer available in array, so read more from _stream
-                            _workDataPos = 0;
-                            _zstream.next_in = workDataPtr;
-                            _zstream.avail_in = (uint)_stream.Read(_workData, 0, _workData.Length);
-                            _bytesIn += _zstream.avail_in;
+                            int baseReadSize = _baseStream.Read(_internalBuf, 0, _internalBuf.Length);
+
+                            _internalBufPos = 0;
+                            _zstream.NextIn = pinRead;
+                            _zstream.AvailIn = (uint)baseReadSize;
+                            TotalIn += baseReadSize;
                         }
 
-                        uint inCount = _zstream.avail_in;
-                        uint outCount = _zstream.avail_out;
+                        uint inCount = _zstream.AvailIn;
+                        uint outCount = _zstream.AvailOut;
 
                         // flush method for inflate has no effect
-                        int zlibError = ZLibNative.Inflate(_zstream, ZLibFlush.Z_NO_FLUSH);
+                        ZLibReturnCode ret = NativeMethods.Inflate(_zstream, ZLibFlush.NO_FLUSH);
 
-                        _workDataPos += (int)(inCount - _zstream.avail_in);
-                        readLen += (int)(outCount - _zstream.avail_out); 
+                        _internalBufPos += (int)(inCount - _zstream.AvailIn);
+                        readLen += (int)(outCount - _zstream.AvailOut);
 
-                        if (zlibError == ZLibReturnCode.StreamEnd)
+                        if (ret == ZLibReturnCode.STREAM_END)
                         {
-                            _workDataPos = -1; // magic for StreamEnd
+                            _internalBufPos = -1; // magic for StreamEnd
                             break;
                         }
-                        else if (zlibError != ZLibReturnCode.OK)
-                        {
-                            _success = false;
-                            throw new ZLibException(zlibError, _zstream.LastErrorMsg);
-                        }
+
+                        ZLibException.CheckZLibOK(ret, _zstream);
                     }
 
-                    _bytesOut += readLen;
+                    TotalOut += readLen;
                 }
             }
             return readLen;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
-		{
-			if (_compMode != CompressionMode.Compress)
-				throw new NotSupportedException("Can't write on a decompression stream!");
+        {
+            if (_mode != ZLibMode.Compress)
+                throw new NotSupportedException("Write() not supported on decompression");
 
-            _bytesIn += count;
+            TotalIn += count;
 
-			using (PinnedArray writePtr = new PinnedArray(_workData))
-			using (PinnedArray bufferPtr = new PinnedArray(buffer))
-			{
-				_zstream.next_in = bufferPtr[offset];
-				_zstream.avail_in = (uint)count;
-				_zstream.next_out = writePtr[_workDataPos];
-				_zstream.avail_out = (uint)(WORK_DATA_SIZE - _workDataPos);
+            using (PinnedArray pinRead = new PinnedArray(buffer))
+            using (PinnedArray pinWrite = new PinnedArray(_internalBuf))
+            {
+                _zstream.NextIn = pinRead[offset];
+                _zstream.AvailIn = (uint)count;
+                _zstream.NextOut = pinWrite[_internalBufPos];
+                _zstream.AvailOut = (uint)(_internalBuf.Length - _internalBufPos);
 
-				while (_zstream.avail_in != 0)
-				{
-					if (_zstream.avail_out == 0)
-					{
-						_stream.Write(_workData, 0, WORK_DATA_SIZE);
-						_bytesOut += WORK_DATA_SIZE;
-						_workDataPos = 0;
-						_zstream.next_out = writePtr;
-						_zstream.avail_out = WORK_DATA_SIZE;
-					}
+                while (_zstream.AvailIn != 0)
+                {
+                    uint outCount = _zstream.AvailOut;
+                    ZLibReturnCode ret = NativeMethods.Deflate(_zstream, ZLibFlush.NO_FLUSH);
+                    _internalBufPos += (int)(outCount - _zstream.AvailOut);
 
-					uint outCount = _zstream.avail_out;
+                    if (_zstream.AvailOut == 0)
+                    {
+                        _baseStream.Write(_internalBuf, 0, _internalBuf.Length);
+                        TotalOut += _internalBuf.Length;
 
-					int zlibError = ZLibNative.Deflate(_zstream, ZLibFlush.Z_NO_FLUSH);
+                        _internalBufPos = 0;
+                        _zstream.NextOut = pinWrite;
+                        _zstream.AvailOut = (uint)_internalBuf.Length;
+                    }
 
-					_workDataPos += (int)(outCount - _zstream.avail_out);
+                    ZLibException.CheckZLibOK(ret, _zstream);
+                }
+            }
+        }
 
-					if (zlibError != ZLibReturnCode.OK)
-					{
-						_success = false;
-						throw new ZLibException(zlibError, _zstream.LastErrorMsg);
-					}
-				}
-			}
-		}
+        public override void Flush()
+        {
+            if (_mode == ZLibMode.Decompress)
+            {
+                _baseStream.Flush();
+                return;
+            }
 
-		/// <summary>Flushes the contents of the internal buffer of the current GZipStream object to the underlying stream.</summary>
-		public override void Flush()
-		{
-			if (_compMode != CompressionMode.Compress)
-				throw new NotSupportedException("Can't flush a decompression stream.");
+            using (PinnedArray pinWrite = new PinnedArray(_internalBuf))
+            {
+                _zstream.NextIn = IntPtr.Zero;
+                _zstream.AvailIn = 0;
+                _zstream.NextOut = pinWrite[_internalBufPos];
+                _zstream.AvailOut = (uint)(_internalBuf.Length - _internalBufPos);
 
-			using (PinnedArray workDataPtr = new PinnedArray(_workData))
-			{
-				_zstream.next_in = IntPtr.Zero;
-				_zstream.avail_in = 0;
-				_zstream.next_out = workDataPtr[_workDataPos];
-				_zstream.avail_out = (uint)(WORK_DATA_SIZE - _workDataPos);
+                ZLibReturnCode ret = ZLibReturnCode.OK;
+                while (ret != ZLibReturnCode.STREAM_END)
+                {
+                    if (_zstream.AvailOut != 0)
+                    {
+                        uint outCount = _zstream.AvailOut;
+                        ret = NativeMethods.Deflate(_zstream, ZLibFlush.FINISH);
 
-				int zlibError = ZLibReturnCode.OK;
-				while (zlibError != ZLibReturnCode.StreamEnd)
-				{
-					if (_zstream.avail_out != 0)
-					{
-						uint outCount = _zstream.avail_out;
-						zlibError = ZLibNative.Deflate(_zstream, ZLibFlush.Z_FINISH);
+                        _internalBufPos += (int)(outCount - _zstream.AvailOut);
 
-						_workDataPos += (int)(outCount - _zstream.avail_out);
-						if (zlibError != ZLibReturnCode.StreamEnd && zlibError != ZLibReturnCode.OK)
-						{
-							_success = false;
-							throw new ZLibException(zlibError, _zstream.LastErrorMsg);
-						}
-					}
+                        if (ret != ZLibReturnCode.STREAM_END && ret != ZLibReturnCode.OK)
+                            throw new ZLibException(ret, _zstream.LastErrorMsg);
+                    }
 
-					_stream.Write(_workData, 0, _workDataPos);
-					_bytesOut += _workDataPos;
-					_workDataPos = 0;
-					_zstream.next_out = workDataPtr;
-					_zstream.avail_out = WORK_DATA_SIZE;
-				}
-			}
+                    _baseStream.Write(_internalBuf, 0, _internalBufPos);
+                    TotalOut += _internalBufPos;
 
-			this._stream.Flush();
-		}
+                    _internalBufPos = 0;
+                    _zstream.NextOut = pinWrite;
+                    _zstream.AvailOut = (uint)_internalBuf.Length;
+                }
+            }
 
-		public long TotalIn => _bytesIn;
+            _baseStream.Flush();
+        }
 
-		public long TotalOut => _bytesOut;
-
-		// The compression ratio obtained (same for compression/decompression).
-		public double CompressionRatio
-		{
-			get
-			{
-				if (_compMode == CompressionMode.Compress)
-					return ((_bytesIn == 0) ? 0.0 : (100.0 - ((double)_bytesOut * 100.0 / (double)_bytesIn)));
-				else
-					return ((_bytesOut == 0) ? 0.0 : (100.0 - ((double)_bytesIn * 100.0 / (double)_bytesOut)));
-			}
-		}
-
-		/// <summary>Gets a value indicating whether the stream supports reading while decompressing a file.</summary>
-		public override bool CanRead => (_compMode == CompressionMode.Decompress) && _stream.CanRead;
-	
-		/// <summary>Gets a value indicating whether the stream supports writing.</summary>
-		public override bool CanWrite => (_compMode == CompressionMode.Compress) && _stream.CanWrite;
-
-        /// <summary>Gets a value indicating whether the stream supports seeking.</summary>
+        public override bool CanRead => _mode == ZLibMode.Decompress && _baseStream.CanRead;
+        public override bool CanWrite => _mode == ZLibMode.Compress && _baseStream.CanWrite;
         public override bool CanSeek => false;
 
-        /// <summary>Gets a reference to the underlying stream.</summary>
-        public Stream BaseStream => _stream;
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException("Seek() not supported");
+        }
 
-		/// <summary>This property is not supported and always throws a NotSupportedException.</summary>
-		/// <param name="offset">The location in the stream.</param>
-		/// <param name="origin">One of the SeekOrigin values.</param>
-		/// <returns>A long value.</returns>
-		public override long Seek(long offset, SeekOrigin origin)
-		{
-			throw new NotSupportedException("Seek not supported");
-		}
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException("SetLength not supported");
+        }
 
-		/// <summary>This property is not supported and always throws a NotSupportedException.</summary>
-		/// <param name="value">The length of the stream.</param>
-		public override void SetLength(long value)
-		{
-			throw new NotSupportedException("SetLength not supported");
-		}
+        public override long Length => throw new NotSupportedException("Length not supported");
 
-		/// <summary>This property is not supported and always throws a NotSupportedException.</summary>
-		public override long Length
-		{
-			get
-			{
-				throw new NotSupportedException("Length not supported.");
-			}
-		}
+        public override long Position
+        {
+            get => throw new NotSupportedException("Position not supported");
+            set => throw new NotSupportedException("Position not supported");
+        }
 
-		/// <summary>This property is not supported and always throws a NotSupportedException.</summary>
-		public override long Position
-		{
-			get
-			{
-				throw new NotSupportedException("Position not supported.");
-			}
-			set
-			{
-				throw new NotSupportedException("Position not supported.");
-			}
-		}
-	}
+        public double CompressionRatio
+        {
+            get
+            {
+                if (_mode == ZLibMode.Compress)
+                {
+                    if (TotalIn == 0)
+                        return 0;
+                    return 100 - TotalOut * 100.0 / TotalIn;
+                }
+                else
+                {
+                    if (TotalOut == 0)
+                        return 0;
+                    return 100 - TotalIn * 100.0 / TotalOut;
+                }
+            }
+        }
+        #endregion
+    }
     #endregion
 
     #region ZLibStream
+    /// <inheritdoc />
     /// <summary>
     /// zlib header + adler32 et end.
     /// wraps a deflate stream
     /// </summary>
     public class ZLibStream : DeflateStream
-	{
-		public ZLibStream(Stream stream, CompressionMode mode)
-			: base(stream, mode)
-		{
-		}
-		public ZLibStream(Stream stream, CompressionMode mode, bool leaveOpen) :
-			base(stream, mode, leaveOpen)
-		{
-		}
-		public ZLibStream(Stream stream, CompressionMode mode, CompressionLevel level) :
-			base(stream, mode, level)
-		{
-		}
-		public ZLibStream(Stream stream, CompressionMode mode, CompressionLevel level, bool leaveOpen) :
-			base(stream, mode, level, leaveOpen)
-		{
-		}
+    {
+        public ZLibStream(Stream stream, ZLibMode mode)
+            : base(stream, mode) { }
 
-		protected override ZLibOpenType OpenType => ZLibOpenType.ZLib;
+        public ZLibStream(Stream stream, ZLibMode mode, bool leaveOpen) :
+            base(stream, mode, leaveOpen)
+        { }
 
-		protected override ZLibWriteType WriteType => ZLibWriteType.ZLib;
-	}
+        public ZLibStream(Stream stream, ZLibMode mode, ZLibCompLevel level) :
+            base(stream, mode, level)
+        { }
+
+        public ZLibStream(Stream stream, ZLibMode mode, ZLibCompLevel level, bool leaveOpen) :
+            base(stream, mode, level, leaveOpen)
+        { }
+
+        protected override ZLibOpenType OpenType => ZLibOpenType.ZLib;
+        protected override ZLibWriteType WriteType => ZLibWriteType.ZLib;
+    }
     #endregion
 
     #region GZipStream
+    /// <inheritdoc />
     /// <summary>
     /// Saved to file (.gz) can be opened with zip utils.
     /// Have hdr + crc32 at end.
     /// Wraps a deflate stream
     /// </summary>
     public class GZipStream : DeflateStream
-	{
-		public GZipStream(Stream stream, CompressionMode mode)
-			: base(stream, mode)
-		{
-		}
-		public GZipStream(Stream stream, CompressionMode mode, bool leaveOpen)
-			: base(stream, mode, leaveOpen)
-		{
-		}
-		public GZipStream(Stream stream, CompressionMode mode, CompressionLevel level)
-			: base(stream, mode, level)
-		{
-		}
-		public GZipStream(Stream stream, CompressionMode mode, CompressionLevel level, bool leaveOpen)
-			: base(stream, mode, level, leaveOpen)
-		{
-		}
+    {
+        public GZipStream(Stream stream, ZLibMode mode)
+            : base(stream, mode) { }
 
-		protected override ZLibOpenType OpenType => ZLibOpenType.GZip;
-		
-		protected override ZLibWriteType WriteType => ZLibWriteType.GZip;
-	}
+        public GZipStream(Stream stream, ZLibMode mode, bool leaveOpen)
+            : base(stream, mode, leaveOpen) { }
+
+        public GZipStream(Stream stream, ZLibMode mode, ZLibCompLevel level)
+            : base(stream, mode, level) { }
+
+        public GZipStream(Stream stream, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
+            : base(stream, mode, level, leaveOpen) { }
+
+        protected override ZLibOpenType OpenType => ZLibOpenType.GZip;
+        protected override ZLibWriteType WriteType => ZLibWriteType.GZip;
+    }
     #endregion
 }

@@ -1,187 +1,197 @@
 ﻿/*
- * Forked from zlibnet v1.3.3
- * https://zlibnet.codeplex.com/
- * 
- * Licensed under zlib license.
- * 
- * This software is provided 'as-is', without any express or implied
- * warranty.  In no event will the authors be held liable for any damages
- * arising from the use of this software.
- *
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
- *
- * 1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software. If you use this software
- *    in a product, an acknowledgment in the product documentation would be
- *    appreciated but is not required.
- * 2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.
- * 3. This notice may not be removed or altered from any source distribution.
- */
+    Derived from zlib header files (zlib license)
+    Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
+
+    C# Wrapper based on zlibnet v1.3.3 (https://zlibnet.codeplex.com/)
+    Copyright (C) @hardon (https://www.codeplex.com/site/users/view/hardon)
+    Copyright (C) 2017-2018 Hajin Jang
+
+    zlib license
+
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
+*/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Joveler.ZLibWrapper
 {
     #region Crc32Stream
     public class Crc32Stream : Stream
     {
-        private uint crc32 = 0;
-        private Stream baseStream;
+        #region Fields
+        private uint _crc32 = 0;
+        private readonly Stream _baseStream;
+        #endregion
 
+        #region Properties
+        public uint Crc32 => _crc32;
+        public uint Checksum => _crc32;
+        public Stream BaseStream => _baseStream;
+        #endregion
+
+        #region Constructor
         public Crc32Stream(Stream stream)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
-            this.baseStream = stream;
+            _baseStream = stream;
         }
+        #endregion
 
+        #region Stream Methods
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int readLen = baseStream.Read(buffer, offset, count);
-            using (PinnedArray bufferPtr = new PinnedArray(buffer))
+            int readLen = _baseStream.Read(buffer, offset, count);
+            using (PinnedArray pinRead = new PinnedArray(buffer))
             {
-                crc32 = ZLibNative.Crc32(crc32, bufferPtr[offset], (uint)readLen);
+                _crc32 = NativeMethods.Crc32(_crc32, pinRead[offset], (uint)readLen);
             }
             return readLen;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            baseStream.Write(buffer, offset, count);
-            using (PinnedArray bufferPtr = new PinnedArray(buffer))
+            _baseStream.Write(buffer, offset, count);
+            using (PinnedArray pinRead = new PinnedArray(buffer))
             {
-                crc32 = ZLibNative.Crc32(crc32, bufferPtr[offset], (uint)count);
+                _crc32 = NativeMethods.Crc32(_crc32, pinRead[offset], (uint)count);
             }
         }
 
         public override void Flush()
         {
-            this.baseStream.Flush();
+            _baseStream.Flush();
         }
 
-        public uint Crc32 => crc32;
-
-        public uint Checksum => crc32;
-
-        public override bool CanRead => baseStream.CanRead;
-
-        public override bool CanWrite => baseStream.CanWrite;
-
-        public override bool CanSeek => (baseStream.CanSeek);
-
-        public Stream BaseStream => baseStream;
+        public override bool CanRead => _baseStream.CanRead;
+        public override bool CanWrite => _baseStream.CanWrite;
+        public override bool CanSeek => _baseStream.CanSeek;
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return baseStream.Seek(offset, origin);
+            return _baseStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            baseStream.SetLength(value);
+            _baseStream.SetLength(value);
         }
 
-        public override long Length => baseStream.Length;
+        public override long Length => _baseStream.Length;
 
         public override long Position
         {
-            get => baseStream.Position;
-            set => baseStream.Position = value;
+            get => _baseStream.Position;
+            set => _baseStream.Position = value;
         }
+        #endregion
     }
     #endregion
 
     #region Adler32Stream
     public class Adler32Stream : Stream
     {
-        private uint adler32 = 1;
-        private Stream baseStream;
+        #region Fields
+        private uint _adler32 = 1;
+        private readonly Stream _baseStream;
+        #endregion
 
+        #region Properties
+        public uint Adler32 => _adler32;
+        public uint Checksum => _adler32;
+        public Stream BaseStream => _baseStream;
+        #endregion
+
+        #region Constructor
         public Adler32Stream(Stream stream)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
-            this.baseStream = stream;
+            _baseStream = stream;
         }
+        #endregion
 
+        #region Stream Methods
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int readLen = baseStream.Read(buffer, offset, count);
-            using (PinnedArray bufferPtr = new PinnedArray(buffer))
+            int readLen = _baseStream.Read(buffer, offset, count);
+            using (PinnedArray pinRead = new PinnedArray(buffer))
             {
-                adler32 = ZLibNative.Adler32(adler32, bufferPtr[offset], (uint)readLen);
+                _adler32 = NativeMethods.Adler32(_adler32, pinRead[offset], (uint)readLen);
             }
             return readLen;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            baseStream.Write(buffer, offset, count);
-            using (PinnedArray bufferPtr = new PinnedArray(buffer))
+            _baseStream.Write(buffer, offset, count);
+            using (PinnedArray pinRead = new PinnedArray(buffer))
             {
-                adler32 = ZLibNative.Adler32(adler32, bufferPtr[offset], (uint)count);
+                _adler32 = NativeMethods.Adler32(_adler32, pinRead[offset], (uint)count);
             }
         }
 
         public override void Flush()
         {
-            this.baseStream.Flush();
+            _baseStream.Flush();
         }
 
-        public uint Adler32 => adler32;
-
-        public uint Checksum => adler32;
-
-        public override bool CanRead => baseStream.CanRead;
-
-        public override bool CanWrite => baseStream.CanWrite;
-
-        public override bool CanSeek => (baseStream.CanSeek);
-
-        public Stream BaseStream => baseStream;
+        public override bool CanRead => _baseStream.CanRead;
+        public override bool CanWrite => _baseStream.CanWrite;
+        public override bool CanSeek => _baseStream.CanSeek;
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return baseStream.Seek(offset, origin);
+            return _baseStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            baseStream.SetLength(value);
+            _baseStream.SetLength(value);
         }
 
-        public override long Length => baseStream.Length;
+        public override long Length => _baseStream.Length;
 
         public override long Position
         {
-            get => baseStream.Position;
-            set => baseStream.Position = value;
+            get => _baseStream.Position;
+            set => _baseStream.Position = value;
         }
+        #endregion
     }
     #endregion
 
     #region Crc32Checksum
     public class Crc32Checksum
     {
-        #region Field, Property, Constructor
-        private const int BUFFER_SIZE = 0x1000;
-        private const uint CHECKSUM_INIT = 0;
+        #region Fields and Properties
+        private const uint InitChecksum = 0;
 
         private uint _checksum;
         public uint Checksum => _checksum;
+        #endregion
 
+        #region Constructor
         public Crc32Checksum()
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             Reset();
         }
@@ -190,112 +200,106 @@ namespace Joveler.ZLibWrapper
         #region Append, Reset
         public uint Append(byte[] buffer)
         {
-            _checksum = Crc32Checksum.Crc32(_checksum, buffer);
+            _checksum = Crc32(_checksum, buffer);
             return _checksum;
         }
 
         public uint Append(byte[] buffer, int offset, int count)
         {
-            _checksum = Crc32Checksum.Crc32(_checksum, buffer, offset, count);
+            _checksum = Crc32(_checksum, buffer, offset, count);
             return _checksum;
         }
 
         public uint Append(Stream stream)
         {
-            byte[] buffer = new byte[BUFFER_SIZE];
+            byte[] buffer = new byte[NativeMethods.BufferSize];
             while (stream.Position < stream.Length)
             {
-                int readByte = stream.Read(buffer, 0, BUFFER_SIZE);
-                _checksum = Crc32Checksum.Crc32(_checksum, buffer, 0, readByte);
+                int readByte = stream.Read(buffer, 0, NativeMethods.BufferSize);
+                _checksum = Crc32(_checksum, buffer, 0, readByte);
             }
             return _checksum;
         }
 
         public void Reset()
         {
-            _checksum = CHECKSUM_INIT;
+            _checksum = InitChecksum;
         }
         #endregion
 
         #region zlib crc32 Wrapper
         public static uint Crc32(byte[] buffer)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
-            using (PinnedArray bufferPtr = new PinnedArray(buffer))
+            using (PinnedArray pinRead = new PinnedArray(buffer))
             {
-                return ZLibNative.Crc32(CHECKSUM_INIT, bufferPtr, (uint)buffer.Length);
+                return NativeMethods.Crc32(InitChecksum, pinRead, (uint)buffer.Length);
             }
         }
 
         public static uint Crc32(byte[] buffer, int offset, int count)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 
-            using (PinnedArray bufferPtr = new PinnedArray(buffer))
+            using (PinnedArray pinRead = new PinnedArray(buffer))
             {
-                return ZLibNative.Crc32(CHECKSUM_INIT, bufferPtr[offset], (uint)count);
+                return NativeMethods.Crc32(InitChecksum, pinRead[offset], (uint)count);
             }
         }
 
         public static uint Crc32(Stream stream)
         {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            uint checksum = InitChecksum;
 
-            return Crc32(buffer);
-        }
+            byte[] buffer = new byte[NativeMethods.BufferSize];
+            int readByte;
+            do
+            {
+                readByte = stream.Read(buffer, 0, buffer.Length);
+                checksum = Crc32(checksum, buffer, 0, readByte);
+            }
+            while (0 < readByte);
 
-        public static uint Crc32(Stream stream, int offset, int count)
-        {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
-
-            return Crc32(buffer, offset, count);
+            return checksum;
         }
 
         public static uint Crc32(uint checksum, byte[] buffer)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
-                return ZLibNative.Crc32(checksum, bufferPtr, (uint)buffer.Length);
+                return NativeMethods.Crc32(checksum, bufferPtr, (uint)buffer.Length);
             }
         }
 
         public static uint Crc32(uint checksum, byte[] buffer, int offset, int count)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 
-            using (PinnedArray bufferPtr = new PinnedArray(buffer))
+            using (PinnedArray pinRead = new PinnedArray(buffer))
             {
-                return ZLibNative.Crc32(checksum, bufferPtr[offset], (uint)count);
+                return NativeMethods.Crc32(checksum, pinRead[offset], (uint)count);
             }
         }
 
         public static uint Crc32(uint checksum, Stream stream)
         {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            byte[] buffer = new byte[NativeMethods.BufferSize];
+            int readByte;
+            do
+            {
+                readByte = stream.Read(buffer, 0, buffer.Length);
+                checksum = Crc32(checksum, buffer, 0, readByte);
+            }
+            while (0 < readByte);
 
-            return Crc32(checksum, buffer);
-        }
-
-        public static uint Crc32(uint checksum, Stream stream, int offset, int count)
-        {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
-
-            return Crc32(checksum, buffer, offset, count);
+            return checksum;
         }
         #endregion
     }
@@ -304,16 +308,19 @@ namespace Joveler.ZLibWrapper
     #region Adler32Checksum
     public class Adler32Checksum
     {
-        #region Field, Property, Constructor
-        private const int BUFFER_SIZE = 0x1000;
-        private const uint CHECKSUM_INIT = 1;
+        #region Fields and Properties
+        private const uint InitChecksum = 1;
+        private readonly int _bufferSize;
 
         private uint _checksum;
         public uint Checksum => _checksum;
+        #endregion
 
+        #region Constructor
         public Adler32Checksum()
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
+            _bufferSize = NativeMethods.BufferSize;
 
             Reset();
         }
@@ -322,125 +329,108 @@ namespace Joveler.ZLibWrapper
         #region Append, Reset
         public uint Append(byte[] buffer)
         {
-            _checksum = Adler32Checksum.Adler32(_checksum, buffer);
+            _checksum = Adler32(_checksum, buffer);
             return _checksum;
         }
 
         public uint Append(byte[] buffer, int offset, int count)
         {
-            _checksum = Adler32Checksum.Adler32(_checksum, buffer, offset, count);
+            _checksum = Adler32(_checksum, buffer, offset, count);
             return _checksum;
         }
 
         public uint Append(Stream stream)
         {
-            byte[] buffer = new byte[BUFFER_SIZE];
+            byte[] buffer = new byte[_bufferSize];
             while (stream.Position < stream.Length)
             {
-                int readByte = stream.Read(buffer, 0, BUFFER_SIZE);
-                _checksum = Adler32Checksum.Adler32(_checksum, buffer, 0, readByte);
+                int readByte = stream.Read(buffer, 0, _bufferSize);
+                _checksum = Adler32(_checksum, buffer, 0, readByte);
             }
             return _checksum;
         }
 
         public void Reset()
         {
-            _checksum = CHECKSUM_INIT;
+            _checksum = InitChecksum;
         }
         #endregion
 
         #region zlib adler32 Wrapper
         public static uint Adler32(byte[] buffer)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
-                return ZLibNative.Adler32(CHECKSUM_INIT, bufferPtr, (uint)buffer.Length);
+                return NativeMethods.Adler32(InitChecksum, bufferPtr, (uint)buffer.Length);
             }
         }
 
         public static uint Adler32(byte[] buffer, int offset, int count)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
-                return ZLibNative.Adler32(CHECKSUM_INIT, bufferPtr[offset], (uint)count);
+                return NativeMethods.Adler32(InitChecksum, bufferPtr[offset], (uint)count);
             }
         }
 
         public static uint Adler32(Stream stream)
         {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            uint checksum = InitChecksum;
 
-            return Adler32(buffer);
-        }
+            byte[] buffer = new byte[NativeMethods.BufferSize];
+            int readByte;
+            do
+            {
+                readByte = stream.Read(buffer, 0, buffer.Length);
+                checksum = Adler32(checksum, buffer, 0, readByte);
+            }
+            while (0 < readByte);
 
-        public static uint Adler32(Stream stream, int offset, int count)
-        {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
-
-            return Adler32(buffer, offset, count);
+            return checksum;
         }
 
         public static uint Adler32(uint checksum, byte[] buffer)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
-                return ZLibNative.Adler32(checksum, bufferPtr, (uint)buffer.Length);
+                return NativeMethods.Adler32(checksum, bufferPtr, (uint)buffer.Length);
             }
         }
 
         public static uint Adler32(uint checksum, byte[] buffer, int offset, int count)
         {
-            ZLibNative.CheckLoaded_UserProvidedZLib();
+            NativeMethods.CheckZLibUserProvided();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
-                return ZLibNative.Adler32(checksum, bufferPtr[offset], (uint)count);
+                return NativeMethods.Adler32(checksum, bufferPtr[offset], (uint)count);
             }
         }
 
         public static uint Adler32(uint checksum, Stream stream)
         {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
+            byte[] buffer = new byte[NativeMethods.BufferSize];
+            int readByte;
+            do
+            {
+                readByte = stream.Read(buffer, 0, buffer.Length);
+                checksum = Adler32(checksum, buffer, 0, readByte);
+            }
+            while (0 < readByte);
 
-            return Adler32(checksum, buffer);
-        }
-
-        public static uint Adler32(uint checksum, Stream stream, int offset, int count)
-        {
-            CheckStreamLength.BiggerThanIntMax(stream);
-            byte[] buffer = new byte[stream.Length];
-            stream.Read(buffer, 0, buffer.Length);
-
-            return Adler32(checksum, buffer, offset, count);
+            return checksum;
         }
         #endregion
-    }
-    #endregion
-
-    #region Utility
-    internal static class CheckStreamLength
-    {
-        internal static void BiggerThanIntMax(Stream stream)
-        {
-            if (int.MaxValue < stream.Length)
-                throw new InvalidOperationException("This method cannot be used with a stream longer than int.MaxValue.");
-        }
     }
     #endregion
 }
