@@ -32,13 +32,12 @@ namespace Joveler.ZLibWrapper
 	/// <summary>
 	/// Classes that simplify a common use of compression streams
 	/// </summary>
-
-	delegate DeflateStream CreateStreamDelegate(Stream s, CompressionMode mode, CompressionLevel level, bool leaveOpen);
+	internal delegate DeflateStream CreateStreamDelegate(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen);
 
     #region DeflateCompressor
     public static class DeflateCompressor
 	{
-		public static MemoryStream Compress(Stream source, CompressionLevel level = CompressionLevel.Default)
+		public static MemoryStream Compress(Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
 		{
 			return CommonCompressor.Compress(CreateStream, source, level);
 		}
@@ -46,7 +45,7 @@ namespace Joveler.ZLibWrapper
 		{
 			return CommonCompressor.Decompress(CreateStream, source);
 		}
-		public static byte[] Compress(byte[] source, CompressionLevel level = CompressionLevel.Default)
+		public static byte[] Compress(byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
 		{
 			return CommonCompressor.Compress(CreateStream, source, level);
 		}
@@ -54,7 +53,7 @@ namespace Joveler.ZLibWrapper
 		{
 			return CommonCompressor.Decompress(CreateStream, source);
 		}
-		private static DeflateStream CreateStream(Stream s, CompressionMode mode, CompressionLevel level, bool leaveOpen)
+		private static DeflateStream CreateStream(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
 		{
 			return new DeflateStream(s, mode, level, leaveOpen);
 		}
@@ -64,7 +63,7 @@ namespace Joveler.ZLibWrapper
     #region ZLibCompressor
     public static class ZLibCompressor
     {
-        public static MemoryStream Compress(Stream source, CompressionLevel level = CompressionLevel.Default)
+        public static MemoryStream Compress(Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
         {
             return CommonCompressor.Compress(CreateStream, source, level);
         }
@@ -72,7 +71,7 @@ namespace Joveler.ZLibWrapper
         {
             return CommonCompressor.Decompress(CreateStream, source);
         }
-        public static byte[] Compress(byte[] source, CompressionLevel level = CompressionLevel.Default)
+        public static byte[] Compress(byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
         {
             return CommonCompressor.Compress(CreateStream, source, level);
         }
@@ -80,7 +79,7 @@ namespace Joveler.ZLibWrapper
         {
             return CommonCompressor.Decompress(CreateStream, source);
         }
-        private static DeflateStream CreateStream(Stream s, CompressionMode mode, CompressionLevel level, bool leaveOpen)
+        private static DeflateStream CreateStream(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
         {
             return new ZLibStream(s, mode, level, leaveOpen);
         }
@@ -90,7 +89,7 @@ namespace Joveler.ZLibWrapper
     #region GZipCompressor
     public static class GZipCompressor
 	{
-		public static MemoryStream Compress(Stream source, CompressionLevel level = CompressionLevel.Default)
+		public static MemoryStream Compress(Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
 		{
 			return CommonCompressor.Compress(CreateStream, source, level);
 		}
@@ -98,7 +97,7 @@ namespace Joveler.ZLibWrapper
 		{
 			return CommonCompressor.Decompress(CreateStream, source);
 		}
-		public static byte[] Compress(byte[] source, CompressionLevel level = CompressionLevel.Default)
+		public static byte[] Compress(byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
 		{
 			return CommonCompressor.Compress(CreateStream, source, level);
 		}
@@ -106,7 +105,7 @@ namespace Joveler.ZLibWrapper
 		{
 			return CommonCompressor.Decompress(CreateStream, source);
 		}
-		private static DeflateStream CreateStream(Stream s, CompressionMode mode, CompressionLevel level, bool leaveOpen)
+		private static DeflateStream CreateStream(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
 		{
 			return new GZipStream(s, mode, level, leaveOpen);
 		}
@@ -116,9 +115,9 @@ namespace Joveler.ZLibWrapper
     #region CommonCompressor
     internal class CommonCompressor
 	{
-		private static void Compress(CreateStreamDelegate sc, Stream source, Stream dest, CompressionLevel level)
+		private static void Compress(CreateStreamDelegate sc, Stream source, Stream dest, ZLibCompLevel level)
 		{
-            using (DeflateStream zsDest = sc(dest, CompressionMode.Compress, level, true))
+            using (DeflateStream zsDest = sc(dest, ZLibMode.Compress, level, true))
 			{
 				source.CopyTo(zsDest);
 			}
@@ -127,13 +126,13 @@ namespace Joveler.ZLibWrapper
 		private static void Decompress(CreateStreamDelegate sc, Stream source, Stream dest)
 		{
             // CompressionLevel.Default in CompressionMode.Decompress does not affect performance or efficiency
-            using (DeflateStream zsSource = sc(source, CompressionMode.Decompress, CompressionLevel.Default, true))
+            using (DeflateStream zsSource = sc(source, ZLibMode.Decompress, ZLibCompLevel.Default, true))
 			{
 				zsSource.CopyTo(dest);
 			}
 		}
 
-		public static MemoryStream Compress(CreateStreamDelegate sc, Stream source, CompressionLevel level = CompressionLevel.Default)
+		public static MemoryStream Compress(CreateStreamDelegate sc, Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
 		{
             MemoryStream result = new MemoryStream();
 			Compress(sc, source, result, level);
@@ -149,7 +148,7 @@ namespace Joveler.ZLibWrapper
 			return result;
 		}
 
-		public static byte[] Compress(CreateStreamDelegate sc, byte[] source, CompressionLevel level = CompressionLevel.Default)
+		public static byte[] Compress(CreateStreamDelegate sc, byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
 		{
             using (MemoryStream srcStream = new MemoryStream(source))
             using (MemoryStream dstStream = Compress(sc, srcStream, level))

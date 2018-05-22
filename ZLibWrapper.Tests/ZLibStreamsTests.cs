@@ -10,66 +10,54 @@ namespace Joveler.ZLibWrapper.Tests
     public class ZLibStreamsTests
     {
         #region DeflateStream - Compress
-        public void DeflateStream_FileCompress_Template(string fileName, CompressionLevel level)
-        {
-            string filePath = Path.Combine(TestHelper.BaseDir, fileName);
-            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (MemoryStream compMs = new MemoryStream())
-            using (MemoryStream decompMs = new MemoryStream())
-            {
-                using (DeflateStream zs = new DeflateStream(compMs, CompressionMode.Compress, level, true))
-                {
-                    fs.CopyTo(zs);
-                }
-
-                fs.Position = 0;
-                compMs.Position = 0;
-
-                // Decompress compMs again
-                using (DeflateStream zs = new DeflateStream(compMs, CompressionMode.Decompress, true))
-                {
-                    zs.CopyTo(decompMs);
-                }
-
-                decompMs.Position = 0;
-
-                // Compare SHA256 Digest
-                byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
-                byte[] fileDigest = TestHelper.SHA256Digest(fs);
-                Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
-            }
-        }
-
         [TestMethod]
         [TestCategory("DeflateStream")]
-        public void DeflateStream_Compress_1()
+        public void DeflateStream_Compress()
         {
-            DeflateStream_FileCompress_Template("ex1.jpg", CompressionLevel.Default);
+            void Template(string fileName, ZLibCompLevel level)
+            {
+                string filePath = Path.Combine(TestHelper.BaseDir, fileName);
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (MemoryStream compMs = new MemoryStream())
+                using (MemoryStream decompMs = new MemoryStream())
+                {
+                    using (DeflateStream zs = new DeflateStream(compMs, ZLibMode.Compress, level, true))
+                    {
+                        fs.CopyTo(zs);
+                    }
+
+                    fs.Position = 0;
+                    compMs.Position = 0;
+
+                    // Decompress compMs again
+                    using (DeflateStream zs = new DeflateStream(compMs, ZLibMode.Decompress, true))
+                    {
+                        zs.CopyTo(decompMs);
+                    }
+
+                    decompMs.Position = 0;
+
+                    // Compare SHA256 Digest
+                    byte[] decompDigest = TestHelper.SHA256Digest(decompMs);
+                    byte[] fileDigest = TestHelper.SHA256Digest(fs);
+                    Assert.IsTrue(decompDigest.SequenceEqual(fileDigest));
+                }
+            }
+
+            Template("ex1.jpg", ZLibCompLevel.Default);
+            Template("ex2.jpg", ZLibCompLevel.BestCompression);
+            Template("ex3.jpg", ZLibCompLevel.BestSpeed);
         }
 
         [TestMethod]
         [TestCategory("DeflateStream")]
         public void DeflateStream_Compress_2()
         {
-            DeflateStream_FileCompress_Template("ex2.jpg", CompressionLevel.Best);
-        }
-
-        [TestMethod]
-        [TestCategory("DeflateStream")]
-        public void DeflateStream_Compress_3()
-        {
-            DeflateStream_FileCompress_Template("ex3.jpg", CompressionLevel.Fastest);
-        }
-
-        [TestMethod]
-        [TestCategory("DeflateStream")]
-        public void DeflateStream_Compress_4()
-        {
             byte[] input = Encoding.UTF8.GetBytes("ABCDEF");
             using (MemoryStream compMs = new MemoryStream())
             using (MemoryStream decompMs = new MemoryStream())
             {
-                using (DeflateStream zs = new DeflateStream(compMs, CompressionMode.Compress, CompressionLevel.Default, true))
+                using (DeflateStream zs = new DeflateStream(compMs, ZLibMode.Compress, ZLibCompLevel.Default, true))
                 {
                     zs.Write(input, 0, input.Length);
                 }
@@ -78,7 +66,7 @@ namespace Joveler.ZLibWrapper.Tests
                 // 73-74-72-76-71-75-03-00
 
                 // Decompress compMs again
-                using (DeflateStream zs = new DeflateStream(compMs, CompressionMode.Decompress, true))
+                using (DeflateStream zs = new DeflateStream(compMs, ZLibMode.Decompress, true))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -102,7 +90,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (FileStream decompFs = new FileStream(decompPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream compFs = new FileStream(compPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                using (DeflateStream zs = new DeflateStream(compFs, CompressionMode.Decompress))
+                using (DeflateStream zs = new DeflateStream(compFs, ZLibMode.Decompress))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -145,7 +133,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (MemoryStream decompMs = new MemoryStream())
             {
                 using (MemoryStream inputMs = new MemoryStream(input))
-                using (DeflateStream zs = new DeflateStream(inputMs, CompressionMode.Decompress))
+                using (DeflateStream zs = new DeflateStream(inputMs, ZLibMode.Decompress))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -161,14 +149,14 @@ namespace Joveler.ZLibWrapper.Tests
         #endregion
 
         #region ZLibStream - Compress
-        public void ZLibStream_FileCompress_Template(string fileName, CompressionLevel level)
+        public void ZLibStream_FileCompress_Template(string fileName, ZLibCompLevel level)
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (MemoryStream compMs = new MemoryStream())
             using (MemoryStream decompMs = new MemoryStream())
             {
-                using (ZLibStream zs = new ZLibStream(compMs, CompressionMode.Compress, level, true))
+                using (ZLibStream zs = new ZLibStream(compMs, ZLibMode.Compress, level, true))
                 {
                     fs.CopyTo(zs);
                 }
@@ -177,7 +165,7 @@ namespace Joveler.ZLibWrapper.Tests
                 compMs.Position = 0;
 
                 // Decompress compMs again
-                using (ZLibStream zs = new ZLibStream(compMs, CompressionMode.Decompress, true))
+                using (ZLibStream zs = new ZLibStream(compMs, ZLibMode.Decompress, true))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -195,21 +183,21 @@ namespace Joveler.ZLibWrapper.Tests
         [TestCategory("ZLibStream")]
         public void ZLibStream_Compress_1()
         {
-            ZLibStream_FileCompress_Template("ex1.jpg", CompressionLevel.Default);
+            ZLibStream_FileCompress_Template("ex1.jpg", ZLibCompLevel.Default);
         }
 
         [TestMethod]
         [TestCategory("ZLibStream")]
         public void ZLibStream_Compress_2()
         {
-            ZLibStream_FileCompress_Template("ex2.jpg", CompressionLevel.Best);
+            ZLibStream_FileCompress_Template("ex2.jpg", ZLibCompLevel.BestCompression);
         }
 
         [TestMethod]
         [TestCategory("ZLibStream")]
         public void ZLibStream_Compress_3()
         {
-            ZLibStream_FileCompress_Template("ex3.jpg", CompressionLevel.Fastest);
+            ZLibStream_FileCompress_Template("ex3.jpg", ZLibCompLevel.BestSpeed);
         }
 
         [TestMethod]
@@ -220,7 +208,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (MemoryStream compMs = new MemoryStream())
             using (MemoryStream decompMs = new MemoryStream())
             {
-                using (ZLibStream zs = new ZLibStream(compMs, CompressionMode.Compress, CompressionLevel.Default, true))
+                using (ZLibStream zs = new ZLibStream(compMs, ZLibMode.Compress, ZLibCompLevel.Default, true))
                 {
                     zs.Write(input, 0, input.Length);
                 }
@@ -229,7 +217,7 @@ namespace Joveler.ZLibWrapper.Tests
                 // 78-9C-73-74-72-76-71-75-03-00-05-7E-01-96
 
                 // Decompress compMs again
-                using (ZLibStream zs = new ZLibStream(compMs, CompressionMode.Decompress, true))
+                using (ZLibStream zs = new ZLibStream(compMs, ZLibMode.Decompress, true))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -253,7 +241,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (FileStream decompFs = new FileStream(decompPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream compFs = new FileStream(compPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                using (ZLibStream zs = new ZLibStream(compFs, CompressionMode.Decompress))
+                using (ZLibStream zs = new ZLibStream(compFs, ZLibMode.Decompress))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -296,7 +284,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (MemoryStream decompMs = new MemoryStream())
             {
                 using (MemoryStream inputMs = new MemoryStream(input))
-                using (ZLibStream zs = new ZLibStream(inputMs, CompressionMode.Decompress))
+                using (ZLibStream zs = new ZLibStream(inputMs, ZLibMode.Decompress))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -312,14 +300,14 @@ namespace Joveler.ZLibWrapper.Tests
         #endregion
 
         #region GZipStream - Compress
-        public void GZipStream_FileCompress_Template(string fileName, CompressionLevel level)
+        public void GZipStream_FileCompress_Template(string fileName, ZLibCompLevel level)
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (MemoryStream compMs = new MemoryStream())
             using (MemoryStream decompMs = new MemoryStream())
             {
-                using (GZipStream zs = new GZipStream(compMs, CompressionMode.Compress, level, true))
+                using (GZipStream zs = new GZipStream(compMs, ZLibMode.Compress, level, true))
                 {
                     fs.CopyTo(zs);
                 }
@@ -328,7 +316,7 @@ namespace Joveler.ZLibWrapper.Tests
                 compMs.Position = 0;
 
                 // Decompress compMs again
-                using (GZipStream zs = new GZipStream(compMs, CompressionMode.Decompress, true))
+                using (GZipStream zs = new GZipStream(compMs, ZLibMode.Decompress, true))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -346,21 +334,21 @@ namespace Joveler.ZLibWrapper.Tests
         [TestCategory("GZipStream")]
         public void GZipStream_Compress_1()
         {
-            GZipStream_FileCompress_Template("ex1.jpg", CompressionLevel.Default);
+            GZipStream_FileCompress_Template("ex1.jpg", ZLibCompLevel.Default);
         }
 
         [TestMethod]
         [TestCategory("GZipStream")]
         public void GZipStream_Compress_2()
         {
-            GZipStream_FileCompress_Template("ex2.jpg", CompressionLevel.Best);
+            GZipStream_FileCompress_Template("ex2.jpg", ZLibCompLevel.BestCompression);
         }
 
         [TestMethod]
         [TestCategory("GZipStream")]
         public void GZipStream_Compress_3()
         {
-            GZipStream_FileCompress_Template("ex3.jpg", CompressionLevel.Fastest);
+            GZipStream_FileCompress_Template("ex3.jpg", ZLibCompLevel.BestSpeed);
         }
 
         [TestMethod]
@@ -371,7 +359,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (MemoryStream compMs = new MemoryStream())
             using (MemoryStream decompMs = new MemoryStream())
             {
-                using (GZipStream zs = new GZipStream(compMs, CompressionMode.Compress, CompressionLevel.Default, true))
+                using (GZipStream zs = new GZipStream(compMs, ZLibMode.Compress, ZLibCompLevel.Default, true))
                 {
                     zs.Write(input, 0, input.Length);
                 }
@@ -380,7 +368,7 @@ namespace Joveler.ZLibWrapper.Tests
                 // 1F-8B-08-00-00-00-00-00-00-0A-73-74-72-76-71-75-03-00-69-FE-76-BB-06-00-00-00
 
                 // Decompress compMs again
-                using (GZipStream zs = new GZipStream(compMs, CompressionMode.Decompress, true))
+                using (GZipStream zs = new GZipStream(compMs, ZLibMode.Decompress, true))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -404,7 +392,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (FileStream decompFs = new FileStream(decompPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream compFs = new FileStream(compPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                using (GZipStream zs = new GZipStream(compFs, CompressionMode.Decompress))
+                using (GZipStream zs = new GZipStream(compFs, ZLibMode.Decompress))
                 {
                     zs.CopyTo(decompMs);
                 }
@@ -447,7 +435,7 @@ namespace Joveler.ZLibWrapper.Tests
             using (MemoryStream decompMs = new MemoryStream())
             {
                 using (MemoryStream inputMs = new MemoryStream(input))
-                using (GZipStream zs = new GZipStream(inputMs, CompressionMode.Decompress))
+                using (GZipStream zs = new GZipStream(inputMs, ZLibMode.Decompress))
                 {
                     zs.CopyTo(decompMs);
                 }

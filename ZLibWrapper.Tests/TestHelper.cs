@@ -18,7 +18,7 @@ namespace Joveler.ZLibWrapper.Tests
                 dllPath = Path.Combine("x64", "zlibwapi.dll");
             else
                 dllPath = Path.Combine("x86", "zlibwapi.dll");
-            ZLibNative.AssemblyInit(dllPath);
+            ZLibInit.GlobalInit(dllPath);
 
             BaseDir = Path.Combine("..", "..", "Samples");
         }
@@ -26,7 +26,7 @@ namespace Joveler.ZLibWrapper.Tests
         [AssemblyCleanup]
         public static void Cleanup()
         {
-            ZLibNative.AssemblyCleanup();
+            ZLibInit.GlobalCleanup();
         }
 
         public static byte[] SHA256Digest(Stream stream)

@@ -10,7 +10,7 @@ namespace Joveler.ZLibWrapper.Tests
     public class ZLibCompressorsTests
     {
         #region DeflateCompressor - Compress
-        public void DeflateCompressor_Compress_Template(string fileName, CompressionLevel level)
+        public void DeflateCompressor_Compress_Template(string fileName, ZLibCompLevel level)
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -29,21 +29,21 @@ namespace Joveler.ZLibWrapper.Tests
         [TestCategory("DeflateCompressor")]
         public void DeflateStream_Compressor_1()
         {
-            DeflateCompressor_Compress_Template("ex1.jpg", CompressionLevel.Default);
+            DeflateCompressor_Compress_Template("ex1.jpg", ZLibCompLevel.Default);
         }
 
         [TestMethod]
         [TestCategory("DeflateCompressor")]
         public void DeflateStream_Compressor_2()
         {
-            DeflateCompressor_Compress_Template("ex2.jpg", CompressionLevel.Best);
+            DeflateCompressor_Compress_Template("ex2.jpg", ZLibCompLevel.BestCompression);
         }
 
         [TestMethod]
         [TestCategory("DeflateCompressor")]
         public void DeflateStream_Compressor_3()
         {
-            DeflateCompressor_Compress_Template("ex3.jpg", CompressionLevel.Fastest);
+            DeflateCompressor_Compress_Template("ex3.jpg", ZLibCompLevel.BestSpeed);
         }
 
         [TestMethod]
@@ -115,7 +115,7 @@ namespace Joveler.ZLibWrapper.Tests
         #endregion
 
         #region ZLibCompressor - Compress
-        public void ZLibCompressor_Compress_Template(string fileName, CompressionLevel level)
+        public void ZLibCompressor_Compress_Template(string fileName, ZLibCompLevel level)
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -134,21 +134,21 @@ namespace Joveler.ZLibWrapper.Tests
         [TestCategory("ZLibCompressor")]
         public void ZLibStream_Compressor_1()
         {
-            ZLibCompressor_Compress_Template("ex1.jpg", CompressionLevel.Default);
+            ZLibCompressor_Compress_Template("ex1.jpg", ZLibCompLevel.Default);
         }
 
         [TestMethod]
         [TestCategory("ZLibCompressor")]
         public void ZLibStream_Compressor_2()
         {
-            ZLibCompressor_Compress_Template("ex2.jpg", CompressionLevel.Best);
+            ZLibCompressor_Compress_Template("ex2.jpg", ZLibCompLevel.BestCompression);
         }
 
         [TestMethod]
         [TestCategory("ZLibCompressor")]
         public void ZLibStream_Compressor_3()
         {
-            ZLibCompressor_Compress_Template("ex3.jpg", CompressionLevel.Fastest);
+            ZLibCompressor_Compress_Template("ex3.jpg", ZLibCompLevel.BestSpeed);
         }
 
         [TestMethod]
@@ -220,7 +220,7 @@ namespace Joveler.ZLibWrapper.Tests
         #endregion
 
         #region GZipCompressor - Compress
-        public void GZipCompressor_Compress_Template(string fileName, CompressionLevel level)
+        public void GZipCompressor_Compress_Template(string fileName, ZLibCompLevel level)
         {
             string filePath = Path.Combine(TestHelper.BaseDir, fileName);
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -239,21 +239,21 @@ namespace Joveler.ZLibWrapper.Tests
         [TestCategory("GZipCompressor")]
         public void GZipStream_Compressor_1()
         {
-            GZipCompressor_Compress_Template("ex1.jpg", CompressionLevel.Default);
+            GZipCompressor_Compress_Template("ex1.jpg", ZLibCompLevel.Default);
         }
 
         [TestMethod]
         [TestCategory("GZipCompressor")]
         public void GZipStream_Compressor_2()
         {
-            GZipCompressor_Compress_Template("ex2.jpg", CompressionLevel.Best);
+            GZipCompressor_Compress_Template("ex2.jpg", ZLibCompLevel.BestCompression);
         }
 
         [TestMethod]
         [TestCategory("GZipCompressor")]
         public void GZipStream_Compressor_3()
         {
-            GZipCompressor_Compress_Template("ex3.jpg", CompressionLevel.Fastest);
+            GZipCompressor_Compress_Template("ex3.jpg", ZLibCompLevel.BestSpeed);
         }
 
         [TestMethod]
