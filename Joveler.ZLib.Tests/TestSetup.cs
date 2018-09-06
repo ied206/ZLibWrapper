@@ -47,7 +47,7 @@ namespace Joveler.ZLib.Tests
                 dllPath = Path.Combine("x86", "zlibwapi.dll");
             ZLibInit.GlobalInit(dllPath);
 
-            SampleDir = Path.Combine("..", "..", "Samples");
+            SampleDir = Path.GetFullPath(Path.Combine("..", "..", "..", "Samples"));
         }
 
         [AssemblyCleanup]
