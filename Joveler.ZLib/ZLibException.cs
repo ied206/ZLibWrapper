@@ -27,7 +27,7 @@
 
 using System;
 
-namespace Joveler.ZLibWrapper
+namespace Joveler.ZLib
 {
     #region ZLibException
     [Serializable]

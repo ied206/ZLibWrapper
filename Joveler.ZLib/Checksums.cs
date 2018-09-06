@@ -27,7 +27,7 @@
 
 using System.IO;
 
-namespace Joveler.ZLibWrapper
+namespace Joveler.ZLib
 {
     #region Crc32Stream
     public class Crc32Stream : Stream

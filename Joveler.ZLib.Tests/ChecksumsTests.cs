@@ -25,13 +25,12 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
-using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
 
-namespace Joveler.ZLibWrapper.Tests
+namespace Joveler.ZLib.Tests
 {
     [TestClass]
     public class ChecksumsTests
@@ -128,7 +127,7 @@ namespace Joveler.ZLibWrapper.Tests
             Template("ex2.jpg", 0x7641A243);
             Template("ex3.jpg", 0x63D4D64B);
         }
-        
+
         [TestMethod]
         [TestCategory("Crc32Checksum")]
         public void Crc32Checksum_4()
@@ -164,7 +163,7 @@ namespace Joveler.ZLibWrapper.Tests
             {
                 byte[] sample = Encoding.UTF8.GetBytes("ABCDEF");
 
-                uint checksum = Crc32Checksum.Crc32(sample, 1, 3); 
+                uint checksum = Crc32Checksum.Crc32(sample, 1, 3);
                 Assert.IsTrue(checksum == 0x26BA19F3); // BCD
             }
         }

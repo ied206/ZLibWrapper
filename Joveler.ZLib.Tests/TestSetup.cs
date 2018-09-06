@@ -25,12 +25,12 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Security.Cryptography;
 
-namespace Joveler.ZLibWrapper.Tests
+namespace Joveler.ZLib.Tests
 {
     [TestClass]
     public class TestSetup

@@ -58,7 +58,7 @@
     <Compile Include="ZLibStreamsTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ZLibWrapper\ZLibWrapper.csproj">
+    <ProjectReference Include="..\Joveler.ZLib\Joveler.ZLib.csproj">
       <Project>{59474c6a-0391-4562-a3b6-d5e7712bb2de}</Project>
       <Name>ZLibWrapper</Name>
     </ProjectReference>

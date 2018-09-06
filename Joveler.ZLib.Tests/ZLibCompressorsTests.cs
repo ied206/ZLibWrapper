@@ -25,13 +25,12 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Text;
 using System.IO;
 using System.Linq;
+using System.Text;
 
-namespace Joveler.ZLibWrapper.Tests
+namespace Joveler.ZLib.Tests
 {
     [TestClass]
     public class ZLibCompressorsTests
@@ -105,7 +104,7 @@ namespace Joveler.ZLibWrapper.Tests
             Template("ex2.jpg");
             Template("ex3.jpg");
         }
-        
+
         [TestMethod]
         [TestCategory("DeflateCompressor")]
         public void DeflateStream_Decompressor_2()
@@ -147,7 +146,7 @@ namespace Joveler.ZLibWrapper.Tests
         public void ZLibStream_Compressor_2()
         {
             byte[] input = Encoding.UTF8.GetBytes("ABCDEF");
-            
+
             // Compress first,
             // 78-9C-73-74-72-76-71-75-03-00-05-7E-01-96
             byte[] compBytes = ZLibCompressor.Compress(input);

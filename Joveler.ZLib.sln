@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLibWrapper", "ZLibWrapper\ZLibWrapper.csproj", "{59474C6A-0391-4562-A3B6-D5E7712BB2DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joveler.ZLib", "Joveler.ZLib\Joveler.ZLib.csproj", "{59474C6A-0391-4562-A3B6-D5E7712BB2DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZLibWrapper.Tests", "ZLibWrapper.Tests\ZLibWrapper.Tests.csproj", "{EF8C6C1C-BFA6-4905-BA90-936431C1B22D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joveler.ZLib.Tests", "Joveler.ZLib.Tests\Joveler.ZLib.Tests.csproj", "{EF8C6C1C-BFA6-4905-BA90-936431C1B22D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

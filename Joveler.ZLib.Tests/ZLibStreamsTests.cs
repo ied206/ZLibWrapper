@@ -33,7 +33,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Joveler.ZLibWrapper.Tests
+namespace Joveler.ZLib.Tests
 {
     [TestClass]
     public class ZLibStreamsTests

@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 // ReSharper disable NotAccessedField.Local
 // ReSharper disable UnusedMember.Local
 
-namespace Joveler.ZLibWrapper
+namespace Joveler.ZLib
 {
     #region Enums
     internal enum ZLibFlush : int

@@ -32,9 +32,10 @@ using System.IO;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
+
 // ReSharper disable InconsistentNaming
 
-namespace Joveler.ZLibWrapper
+namespace Joveler.ZLib
 {
     #region SafeLibraryHandle
     [SecurityPermission(SecurityAction.InheritanceDemand, UnmanagedCode = true)]
