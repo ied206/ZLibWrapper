@@ -27,7 +27,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
 // ReSharper disable InconsistentNaming
 // ReSharper disable EnumUnderlyingTypeIsInt
 // ReSharper disable FieldCanBeMadeReadOnly.Local
