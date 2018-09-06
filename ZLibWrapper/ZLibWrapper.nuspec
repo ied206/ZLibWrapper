@@ -12,7 +12,7 @@
     <description>C# wrapper library for native zlib.
 Provides improved DeflateStream, ZLibStream, GZipStream and Adler32Stream, Crc32Stream.</description>
     <summary>C# wrapper library for native zlib.</summary>
-    <releaseNotes>- Refactor codebase and public API</releaseNotes>
+    <releaseNotes>- Use 64K for default buffer size</releaseNotes>
     <copyright>Copyright (c) 2017-2018 Hajin Jang</copyright>
     <tags>zlib deflate gzip adler32 crc32</tags>
     <dependencies>
