@@ -25,16 +25,13 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using System.IO;
 using Microsoft.Win32.SafeHandles;
-using System.Runtime.ConstrainedExecution;
-using System.Security.Permissions;
+using System;
 using System.ComponentModel;
+using System.IO;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
+using System.Security.Permissions;
 // ReSharper disable InconsistentNaming
 
 namespace Joveler.ZLibWrapper
@@ -134,21 +131,17 @@ namespace Joveler.ZLibWrapper
         #endregion
 
         #region GlobalInit, GlobalCleanup
-        public static void GlobalInit(string dllPath = null, int bufferSize = 4096)
+        public static void GlobalInit(string dllPath = null, int bufferSize = 64 * 1024)
         {
             if (NativeMethods.Loaded)
                 throw new InvalidOperationException(NativeMethods.MsgAlreadyInited);
 
             if (dllPath == null)
             {
-#if NET40
-                throw new ArgumentException("Please provide zlibwapi.dll");
-#else
                 // Use .Net Framework's clrcompression instead
                 string fxDir = RuntimeEnvironment.GetRuntimeDirectory();
                 dllPath = Path.Combine(fxDir, "clrcompression.dll");
                 ZLibProvided = false;
-#endif
             }
             else if (!File.Exists(dllPath))
             { // Check 
@@ -182,7 +175,7 @@ namespace Joveler.ZLibWrapper
 
             if (bufferSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(bufferSize));
-            else if (bufferSize < 4096)
+            if (bufferSize < 4096)
                 bufferSize = 4096;
             NativeMethods.BufferSize = bufferSize;
 

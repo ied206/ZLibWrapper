@@ -25,43 +25,39 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace Joveler.ZLibWrapper
 {
-	/// <summary>
-	/// Classes that simplify a common use of compression streams
-	/// </summary>
-	internal delegate DeflateStream CreateStreamDelegate(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen);
+    /// <summary>
+    /// Classes that simplify a common use of compression streams
+    /// </summary>
+    internal delegate DeflateStream CreateStreamDelegate(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen);
 
     #region DeflateCompressor
     public static class DeflateCompressor
-	{
-		public static MemoryStream Compress(Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
-		{
-			return CommonCompressor.Compress(CreateStream, source, level);
-		}
+    {
+        public static MemoryStream Compress(Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
+        {
+            return CommonCompressor.Compress(CreateStream, source, level);
+        }
         public static MemoryStream Decompress(Stream source)
-		{
-			return CommonCompressor.Decompress(CreateStream, source);
-		}
-		public static byte[] Compress(byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
-		{
-			return CommonCompressor.Compress(CreateStream, source, level);
-		}
-		public static byte[] Decompress(byte[] source)
-		{
-			return CommonCompressor.Decompress(CreateStream, source);
-		}
-		private static DeflateStream CreateStream(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
-		{
-			return new DeflateStream(s, mode, level, leaveOpen);
-		}
-	}
+        {
+            return CommonCompressor.Decompress(CreateStream, source);
+        }
+        public static byte[] Compress(byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
+        {
+            return CommonCompressor.Compress(CreateStream, source, level);
+        }
+        public static byte[] Decompress(byte[] source)
+        {
+            return CommonCompressor.Decompress(CreateStream, source);
+        }
+        private static DeflateStream CreateStream(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
+        {
+            return new DeflateStream(s, mode, level, leaveOpen);
+        }
+    }
     #endregion
 
     #region ZLibCompressor
@@ -92,83 +88,83 @@ namespace Joveler.ZLibWrapper
 
     #region GZipCompressor
     public static class GZipCompressor
-	{
-		public static MemoryStream Compress(Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
-		{
-			return CommonCompressor.Compress(CreateStream, source, level);
-		}
-		public static MemoryStream Decompress(Stream source)
-		{
-			return CommonCompressor.Decompress(CreateStream, source);
-		}
-		public static byte[] Compress(byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
-		{
-			return CommonCompressor.Compress(CreateStream, source, level);
-		}
-		public static byte[] Decompress(byte[] source)
-		{
-			return CommonCompressor.Decompress(CreateStream, source);
-		}
-		private static DeflateStream CreateStream(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
-		{
-			return new GZipStream(s, mode, level, leaveOpen);
-		}
-	}
+    {
+        public static MemoryStream Compress(Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
+        {
+            return CommonCompressor.Compress(CreateStream, source, level);
+        }
+        public static MemoryStream Decompress(Stream source)
+        {
+            return CommonCompressor.Decompress(CreateStream, source);
+        }
+        public static byte[] Compress(byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
+        {
+            return CommonCompressor.Compress(CreateStream, source, level);
+        }
+        public static byte[] Decompress(byte[] source)
+        {
+            return CommonCompressor.Decompress(CreateStream, source);
+        }
+        private static DeflateStream CreateStream(Stream s, ZLibMode mode, ZLibCompLevel level, bool leaveOpen)
+        {
+            return new GZipStream(s, mode, level, leaveOpen);
+        }
+    }
     #endregion
 
     #region CommonCompressor
     internal class CommonCompressor
-	{
-		private static void Compress(CreateStreamDelegate sc, Stream source, Stream dest, ZLibCompLevel level)
-		{
+    {
+        private static void Compress(CreateStreamDelegate sc, Stream source, Stream dest, ZLibCompLevel level)
+        {
             using (DeflateStream zsDest = sc(dest, ZLibMode.Compress, level, true))
-			{
-				source.CopyTo(zsDest);
-			}
-		}
+            {
+                source.CopyTo(zsDest);
+            }
+        }
 
-		private static void Decompress(CreateStreamDelegate sc, Stream source, Stream dest)
-		{
+        private static void Decompress(CreateStreamDelegate sc, Stream source, Stream dest)
+        {
             // CompressionLevel.Default in CompressionMode.Decompress does not affect performance or efficiency
             using (DeflateStream zsSource = sc(source, ZLibMode.Decompress, ZLibCompLevel.Default, true))
-			{
-				zsSource.CopyTo(dest);
-			}
-		}
+            {
+                zsSource.CopyTo(dest);
+            }
+        }
 
-		public static MemoryStream Compress(CreateStreamDelegate sc, Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
-		{
+        public static MemoryStream Compress(CreateStreamDelegate sc, Stream source, ZLibCompLevel level = ZLibCompLevel.Default)
+        {
             MemoryStream result = new MemoryStream();
-			Compress(sc, source, result, level);
-			result.Position = 0;
-			return result;
-		}
+            Compress(sc, source, result, level);
+            result.Position = 0;
+            return result;
+        }
 
-		public static MemoryStream Decompress(CreateStreamDelegate sc, Stream source)
-		{
+        public static MemoryStream Decompress(CreateStreamDelegate sc, Stream source)
+        {
             MemoryStream result = new MemoryStream();
-			Decompress(sc, source, result);
-			result.Position = 0;
-			return result;
-		}
+            Decompress(sc, source, result);
+            result.Position = 0;
+            return result;
+        }
 
-		public static byte[] Compress(CreateStreamDelegate sc, byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
-		{
+        public static byte[] Compress(CreateStreamDelegate sc, byte[] source, ZLibCompLevel level = ZLibCompLevel.Default)
+        {
             using (MemoryStream srcStream = new MemoryStream(source))
             using (MemoryStream dstStream = Compress(sc, srcStream, level))
             {
                 return dstStream.ToArray();
             }
-		}
+        }
 
-		public static byte[] Decompress(CreateStreamDelegate sc, byte[] source)
-		{
+        public static byte[] Decompress(CreateStreamDelegate sc, byte[] source)
+        {
             using (MemoryStream srcStream = new MemoryStream(source))
             using (MemoryStream dstStream = Decompress(sc, srcStream))
             {
                 return dstStream.ToArray();
             }
-		}
-	}
+        }
+    }
     #endregion
 }
