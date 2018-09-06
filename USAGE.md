@@ -4,11 +4,11 @@
 
 ZLibWrapper internally loads zlib dynamically (using `LoadLibrary` and `GetProcAddress`).
 
-Personal recommendation is case 1, since it provides newer version of zlib while convenient.
+Personal recommendation is option 1 since it provides the newer version of zlib while convenient.
 
-### Case 1 : Embedded Precompiled zlib
+### Option 1: Embedded Precompiled zlib
 
-ZLibWrapper contains `zlibwapi.dll`, precompiled binaries of `zlib 1.2.11`.<br>
+ZLibWrapper contains `zlibwapi.dll`, precompiled binaries of `zlib 1.2.11`.  
 They will be copied into `$(OutDir)\x86\zlibwpi.all` and `$(OutDir)\x64\zlibwpi.all` at build.
 
 To use `zlibwapi.dll`, call `ZLibInit.GlobalInit()` explicitly at App's init code.
@@ -28,30 +28,30 @@ else // This app is running on 32bit .Net Framework
 
 - x86 version of embedded `zlibwapi.dll` was compiled without assembly optimization, due to [the bug](https://github.com/madler/zlib/issues/274)
 
-### Case 2 : No Explicit Initialzation
+### Option 2: No Explicit Initialization
 
-Starting from .Net Framework 4.5, .Net has its own copy of zlib, named `clrcompression.dll`.<br>
-It is stripped version of zlib, which is used in `System.IO.Compression.DeflateStream`.
+Starting from .Net Framework 4.5, .Net has its own copy of zlib, named `clrcompression.dll`.  
+It is a stripped version of zlib, which is used in `System.IO.Compression.DeflateStream`.
 
 If ZLibWrapper is used without explicit initialization, `clrcompression.dll` is used by default.
 
 #### Limitation
 
 - Since `clrcompression.dll` does not expose `adler32()` and `crc32()`, checksum calculation feature will be disabled.
-- `clrcompression.dll` is based on quite old version of zlib (at least in .Net Framework 4.7).
+- `clrcompression.dll` is based on quite an old version of zlib (at least in .Net Framework 4.7).
 
-### Case 3 : Custom zlib
+### Option 3: Custom zlib
 
 You may want to use custom zlib because of several reasons.
 
 In this case, call `ZLibInit.GlobalInit()` with path to custom `zlibwapi.dll`.
 
 NOTE:
-ZLibWrapper can only recognize `zlibwapi.dll`, not `zlib1.dll`.<br>
+ZLibWrapper can only recognize `zlibwapi.dll`, not `zlib1.dll`.  
 The difference is the calling convention: `zlibwapi.dll` uses `stdcall`, while `zlib1.dll` uses `cdecl`.
 
-It is advised to prevent copy of package-embedded `zlibwapi.dll` in this case.<br>
-To do so, create empty file named `Joveler.ZLibWrapper.Precompiled.Exclude` in project directory.
+It is advised to prevent copy of package-embedded `zlibwapi.dll` in this case.  
+To do so, create an empty file named `Joveler.ZLibWrapper.Precompiled.Exclude` in the project directory.
 
 ## Cleanup
 
@@ -164,7 +164,7 @@ Same usage with `DeflateCompressor`.
 
 ### Adler32Checksum
 
-A class to compute adler32 checksum.
+A class to compute the adler32 checksum.
 
 Use `Append()` methods to compute checksum.<br>
 Use `Checksum` property to get checksum value.
