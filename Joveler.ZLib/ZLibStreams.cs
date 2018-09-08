@@ -43,8 +43,9 @@ namespace Joveler.ZLib
         private readonly bool _leaveOpen;
         private bool _disposed = false;
 
-        private ZStream _zstream;
-        private GCHandle _zstreamPtr;
+        private ZStreamL32 _zs32;
+        private ZStreamL64 _zs64;
+        private GCHandle _zsPtr;
 
         protected virtual ZLibOpenType OpenType => ZLibOpenType.Deflate;
         protected virtual ZLibWriteType WriteType => ZLibWriteType.Deflate;
@@ -76,9 +77,6 @@ namespace Joveler.ZLib
         {
             NativeMethods.CheckZLibLoaded();
 
-            _zstream = new ZStream();
-            _zstreamPtr = GCHandle.Alloc(_zstream, GCHandleType.Pinned);
-
             _leaveOpen = leaveOpen;
             _baseStream = stream;
             _mode = mode;
@@ -86,14 +84,38 @@ namespace Joveler.ZLib
 
             Debug.Assert(0 < NativeMethods.BufferSize, "Internal Logic Error at DeflateStream");
             _internalBuf = new byte[NativeMethods.BufferSize];
-
-            ZLibReturnCode ret;
-            if (_mode == ZLibMode.Compress)
-                ret = NativeMethods.DeflateInit(_zstream, level, WriteType);
-            else
-                ret = NativeMethods.InflateInit(_zstream, OpenType);
-
-            ZLibException.CheckZLibOK(ret, _zstream);
+            
+            switch (NativeMethods.LongBitType)
+            {
+                case NativeMethods.LongBits.Long32:
+                {
+                    _zs32 = new ZStreamL32();
+                    _zsPtr = GCHandle.Alloc(_zs32, GCHandleType.Pinned);
+                    
+                    ZLibReturnCode ret;
+                    if (_mode == ZLibMode.Compress)
+                        ret = NativeMethods.L32.DeflateInit(_zs32, level, WriteType);
+                    else
+                        ret = NativeMethods.L32.InflateInit(_zs32, OpenType);
+                    ZLibException.CheckZLibRetOk(ret, _zs32);
+                    break;
+                }
+                case NativeMethods.LongBits.Long64:
+                {
+                    _zs64 = new ZStreamL64();
+                    _zsPtr = GCHandle.Alloc(_zs64, GCHandleType.Pinned);
+                    
+                    ZLibReturnCode ret;
+                    if (_mode == ZLibMode.Compress)
+                        ret = NativeMethods.L64.DeflateInit(_zs64, level, WriteType);
+                    else
+                        ret = NativeMethods.L64.InflateInit(_zs64, OpenType);
+                    ZLibException.CheckZLibRetOk(ret, _zs64);
+                    break;
+                }
+                default:
+                    throw new PlatformNotSupportedException();
+            }
         }
         #endregion
 
@@ -116,16 +138,36 @@ namespace Joveler.ZLib
                     _baseStream = null;
                 }
 
-                if (_zstream != null)
+                switch (NativeMethods.LongBitType)
                 {
-                    if (_mode == ZLibMode.Compress)
-                        NativeMethods.DeflateEnd(_zstream);
-                    else
-                        NativeMethods.InflateEnd(_zstream);
-                    _zstreamPtr.Free();
-                    _zstream = null;
+                    case NativeMethods.LongBits.Long32:
+                    {
+                        if (_zs32 != null)
+                        {
+                            if (_mode == ZLibMode.Compress)
+                                NativeMethods.L32.DeflateEnd(_zs32);
+                            else
+                                NativeMethods.L32.InflateEnd(_zs32);
+                            _zsPtr.Free();
+                            _zs32 = null;
+                        }
+                        break;   
+                    }
+                    case NativeMethods.LongBits.Long64:
+                    {
+                        if (_zs64 != null)
+                        {
+                            if (_mode == ZLibMode.Compress)
+                                NativeMethods.L64.DeflateEnd(_zs64);
+                            else
+                                NativeMethods.L64.InflateEnd(_zs64);
+                            _zsPtr.Free();
+                            _zs64 = null;
+                        }   
+                        break;
+                    }    
                 }
-
+                
                 _disposed = true;
             }
         }
@@ -153,50 +195,94 @@ namespace Joveler.ZLib
                 throw new NotSupportedException("Read() not supported on compression");
 
             ValidateReadWriteArgs(buffer, offset, count);
-
+            
             int readLen = 0;
             if (_internalBufPos != -1)
             {
                 using (PinnedArray pinRead = new PinnedArray(_internalBuf)) // [In] Compressed
                 using (PinnedArray pinWrite = new PinnedArray(buffer)) // [Out] Will-be-decompressed
                 {
-                    _zstream.NextIn = pinRead[_internalBufPos];
-                    _zstream.NextOut = pinWrite[offset];
-                    _zstream.AvailOut = (uint)count;
-
-                    while (0 < _zstream.AvailOut)
+                    switch (NativeMethods.LongBitType)
                     {
-                        if (_zstream.AvailIn == 0)
-                        { // Compressed Data is no longer available in array, so read more from _stream
-                            int baseReadSize = _baseStream.Read(_internalBuf, 0, _internalBuf.Length);
-
-                            _internalBufPos = 0;
-                            _zstream.NextIn = pinRead;
-                            _zstream.AvailIn = (uint)baseReadSize;
-                            TotalIn += baseReadSize;
-                        }
-
-                        uint inCount = _zstream.AvailIn;
-                        uint outCount = _zstream.AvailOut;
-
-                        // flush method for inflate has no effect
-                        ZLibReturnCode ret = NativeMethods.Inflate(_zstream, ZLibFlush.NO_FLUSH);
-
-                        _internalBufPos += (int)(inCount - _zstream.AvailIn);
-                        readLen += (int)(outCount - _zstream.AvailOut);
-
-                        if (ret == ZLibReturnCode.STREAM_END)
+                        case NativeMethods.LongBits.Long32:
                         {
-                            _internalBufPos = -1; // magic for StreamEnd
+                            _zs32.NextIn = pinRead[_internalBufPos];
+                            _zs32.NextOut = pinWrite[offset];
+                            _zs32.AvailOut = (uint)count;
+
+                            while (0 < _zs32.AvailOut)
+                            {
+                                if (_zs32.AvailIn == 0)
+                                { // Compressed Data is no longer available in array, so read more from _stream
+                                    int baseReadSize = _baseStream.Read(_internalBuf, 0, _internalBuf.Length);
+
+                                    _internalBufPos = 0;
+                                    _zs32.NextIn = pinRead;
+                                    _zs32.AvailIn = (uint)baseReadSize;
+                                    TotalIn += baseReadSize;
+                                }
+
+                                uint inCount = _zs32.AvailIn;
+                                uint outCount = _zs32.AvailOut;
+
+                                // flush method for inflate has no effect
+                                ZLibReturnCode ret = NativeMethods.L32.Inflate(_zs32, ZLibFlush.NO_FLUSH);
+
+                                _internalBufPos += (int)(inCount - _zs32.AvailIn);
+                                readLen += (int)(outCount - _zs32.AvailOut);
+
+                                if (ret == ZLibReturnCode.STREAM_END)
+                                {
+                                    _internalBufPos = -1; // magic for StreamEnd
+                                    break;
+                                }
+
+                                ZLibException.CheckZLibRetOk(ret, _zs32);
+                            }
                             break;
                         }
+                        case NativeMethods.LongBits.Long64:
+                        {
+                            _zs64.NextIn = pinRead[_internalBufPos];
+                            _zs64.NextOut = pinWrite[offset];
+                            _zs64.AvailOut = (uint)count;
 
-                        ZLibException.CheckZLibOK(ret, _zstream);
+                            while (0 < _zs64.AvailOut)
+                            {
+                                if (_zs64.AvailIn == 0)
+                                { // Compressed Data is no longer available in array, so read more from _stream
+                                    int baseReadSize = _baseStream.Read(_internalBuf, 0, _internalBuf.Length);
+
+                                    _internalBufPos = 0;
+                                    _zs64.NextIn = pinRead;
+                                    _zs64.AvailIn = (uint)baseReadSize;
+                                    TotalIn += baseReadSize;
+                                }
+
+                                uint inCount = _zs64.AvailIn;
+                                uint outCount = _zs64.AvailOut;
+
+                                // flush method for inflate has no effect
+                                ZLibReturnCode ret = NativeMethods.L64.Inflate(_zs64, ZLibFlush.NO_FLUSH);
+
+                                _internalBufPos += (int)(inCount - _zs64.AvailIn);
+                                readLen += (int)(outCount - _zs64.AvailOut);
+
+                                if (ret == ZLibReturnCode.STREAM_END)
+                                {
+                                    _internalBufPos = -1; // magic for StreamEnd
+                                    break;
+                                }
+
+                                ZLibException.CheckZLibRetOk(ret, _zs64);
+                            }
+                            break;
+                        }
                     }
-
-                    TotalOut += readLen;
-                }
+                }    
             }
+            
+            TotalOut += readLen;
             return readLen;
         }
 
@@ -206,32 +292,66 @@ namespace Joveler.ZLib
                 throw new NotSupportedException("Write() not supported on decompression");
 
             TotalIn += count;
-
+            
             using (PinnedArray pinRead = new PinnedArray(buffer))
             using (PinnedArray pinWrite = new PinnedArray(_internalBuf))
             {
-                _zstream.NextIn = pinRead[offset];
-                _zstream.AvailIn = (uint)count;
-                _zstream.NextOut = pinWrite[_internalBufPos];
-                _zstream.AvailOut = (uint)(_internalBuf.Length - _internalBufPos);
-
-                while (_zstream.AvailIn != 0)
+                switch (NativeMethods.LongBitType)
                 {
-                    uint outCount = _zstream.AvailOut;
-                    ZLibReturnCode ret = NativeMethods.Deflate(_zstream, ZLibFlush.NO_FLUSH);
-                    _internalBufPos += (int)(outCount - _zstream.AvailOut);
-
-                    if (_zstream.AvailOut == 0)
+                    case NativeMethods.LongBits.Long32:
                     {
-                        _baseStream.Write(_internalBuf, 0, _internalBuf.Length);
-                        TotalOut += _internalBuf.Length;
+                        _zs32.NextIn = pinRead[offset];
+                        _zs32.AvailIn = (uint)count;
+                        _zs32.NextOut = pinWrite[_internalBufPos];
+                        _zs32.AvailOut = (uint)(_internalBuf.Length - _internalBufPos);
 
-                        _internalBufPos = 0;
-                        _zstream.NextOut = pinWrite;
-                        _zstream.AvailOut = (uint)_internalBuf.Length;
+                        while (_zs32.AvailIn != 0)
+                        {
+                            uint outCount = _zs32.AvailOut;
+                            ZLibReturnCode ret = NativeMethods.L32.Deflate(_zs32, ZLibFlush.NO_FLUSH);
+                            _internalBufPos += (int)(outCount - _zs32.AvailOut);
+
+                            if (_zs32.AvailOut == 0)
+                            {
+                                _baseStream.Write(_internalBuf, 0, _internalBuf.Length);
+                                TotalOut += _internalBuf.Length;
+
+                                _internalBufPos = 0;
+                                _zs32.NextOut = pinWrite;
+                                _zs32.AvailOut = (uint)_internalBuf.Length;
+                            }
+
+                            ZLibException.CheckZLibRetOk(ret, _zs32);
+                        }
+                        break;   
                     }
+                    case NativeMethods.LongBits.Long64:
+                    {
+                        _zs64.NextIn = pinRead[offset];
+                        _zs64.AvailIn = (uint)count;
+                        _zs64.NextOut = pinWrite[_internalBufPos];
+                        _zs64.AvailOut = (uint)(_internalBuf.Length - _internalBufPos);
 
-                    ZLibException.CheckZLibOK(ret, _zstream);
+                        while (_zs64.AvailIn != 0)
+                        {
+                            uint outCount = _zs64.AvailOut;
+                            ZLibReturnCode ret = NativeMethods.L64.Deflate(_zs64, ZLibFlush.NO_FLUSH);
+                            _internalBufPos += (int)(outCount - _zs64.AvailOut);
+
+                            if (_zs64.AvailOut == 0)
+                            {
+                                _baseStream.Write(_internalBuf, 0, _internalBuf.Length);
+                                TotalOut += _internalBuf.Length;
+
+                                _internalBufPos = 0;
+                                _zs64.NextOut = pinWrite;
+                                _zs64.AvailOut = (uint)_internalBuf.Length;
+                            }
+
+                            ZLibException.CheckZLibRetOk(ret, _zs64);
+                        }
+                        break;
+                    }    
                 }
             }
         }
@@ -246,31 +366,70 @@ namespace Joveler.ZLib
 
             using (PinnedArray pinWrite = new PinnedArray(_internalBuf))
             {
-                _zstream.NextIn = IntPtr.Zero;
-                _zstream.AvailIn = 0;
-                _zstream.NextOut = pinWrite[_internalBufPos];
-                _zstream.AvailOut = (uint)(_internalBuf.Length - _internalBufPos);
-
-                ZLibReturnCode ret = ZLibReturnCode.OK;
-                while (ret != ZLibReturnCode.STREAM_END)
+                switch (NativeMethods.LongBitType)
                 {
-                    if (_zstream.AvailOut != 0)
+                    case NativeMethods.LongBits.Long32:
                     {
-                        uint outCount = _zstream.AvailOut;
-                        ret = NativeMethods.Deflate(_zstream, ZLibFlush.FINISH);
+                        _zs32.NextIn = IntPtr.Zero;
+                        _zs32.AvailIn = 0;
+                        _zs32.NextOut = pinWrite[_internalBufPos];
+                        _zs32.AvailOut = (uint) (_internalBuf.Length - _internalBufPos);
 
-                        _internalBufPos += (int)(outCount - _zstream.AvailOut);
+                        ZLibReturnCode ret = ZLibReturnCode.OK;
+                        while (ret != ZLibReturnCode.STREAM_END)
+                        {
+                            if (_zs32.AvailOut != 0)
+                            {
+                                uint outCount = _zs32.AvailOut;
+                                ret = NativeMethods.L32.Deflate(_zs32, ZLibFlush.FINISH);
 
-                        if (ret != ZLibReturnCode.STREAM_END && ret != ZLibReturnCode.OK)
-                            throw new ZLibException(ret, _zstream.LastErrorMsg);
+                                _internalBufPos += (int) (outCount - _zs32.AvailOut);
+
+                                if (ret != ZLibReturnCode.STREAM_END && ret != ZLibReturnCode.OK)
+                                    throw new ZLibException(ret, _zs32.LastErrorMsg);
+                            }
+
+                            _baseStream.Write(_internalBuf, 0, _internalBufPos);
+                            TotalOut += _internalBufPos;
+
+                            _internalBufPos = 0;
+                            _zs32.NextOut = pinWrite;
+                            _zs32.AvailOut = (uint) _internalBuf.Length;
+                        }
+
+                        break;
                     }
+                    case NativeMethods.LongBits.Long64:
+                    {
+                        _zs64.NextIn = IntPtr.Zero;
+                        _zs64.AvailIn = 0;
+                        _zs64.NextOut = pinWrite[_internalBufPos];
+                        _zs64.AvailOut = (uint) (_internalBuf.Length - _internalBufPos);
 
-                    _baseStream.Write(_internalBuf, 0, _internalBufPos);
-                    TotalOut += _internalBufPos;
+                        ZLibReturnCode ret = ZLibReturnCode.OK;
+                        while (ret != ZLibReturnCode.STREAM_END)
+                        {
+                            if (_zs64.AvailOut != 0)
+                            {
+                                uint outCount = _zs64.AvailOut;
+                                ret = NativeMethods.L64.Deflate(_zs64, ZLibFlush.FINISH);
 
-                    _internalBufPos = 0;
-                    _zstream.NextOut = pinWrite;
-                    _zstream.AvailOut = (uint)_internalBuf.Length;
+                                _internalBufPos += (int) (outCount - _zs64.AvailOut);
+
+                                if (ret != ZLibReturnCode.STREAM_END && ret != ZLibReturnCode.OK)
+                                    throw new ZLibException(ret, _zs64.LastErrorMsg);
+                            }
+
+                            _baseStream.Write(_internalBuf, 0, _internalBufPos);
+                            TotalOut += _internalBufPos;
+
+                            _internalBufPos = 0;
+                            _zs64.NextOut = pinWrite;
+                            _zs64.AvailOut = (uint) _internalBuf.Length;
+                        }
+
+                        break;
+                    }
                 }
             }
 

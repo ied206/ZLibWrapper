@@ -141,9 +141,9 @@ namespace Joveler.ZLib
     }
     #endregion
 
-    #region ZStream
+    #region ZStream for 32bit long
     [StructLayout(LayoutKind.Sequential)]
-    internal class ZStream
+    internal class ZStreamL32
     {
 #pragma warning disable 169
 #pragma warning disable IDE0044
@@ -208,6 +208,78 @@ namespace Joveler.ZLib
         /// reserved for future use
         /// </summary>
         private uint Reserved;
+#pragma warning restore 169
+#pragma warning restore IDE0044
+    }
+    #endregion
+    
+    #region ZStream for 64bit long
+    [StructLayout(LayoutKind.Sequential)]
+    internal class ZStreamL64
+    {
+#pragma warning disable 169
+#pragma warning disable IDE0044
+        /// <summary>
+        /// next input byte
+        /// </summary>
+        public IntPtr NextIn = IntPtr.Zero;
+        /// <summary>
+        /// number of bytes available at next_in
+        /// </summary>
+        public uint AvailIn;
+        /// <summary>
+        /// total number of input bytes read so far
+        /// </summary>
+        public ulong TotalIn;
+
+        /// <summary>
+        /// next output byte will go here
+        /// </summary>
+        public IntPtr NextOut = IntPtr.Zero;
+        /// <summary>
+        /// remaining free space at next_out
+        /// </summary>
+        public uint AvailOut;
+        /// <summary>
+        /// total number of bytes output so far
+        /// </summary>
+        public ulong TotalOut;
+
+        private IntPtr Msg = IntPtr.Zero;
+        /// <summary>
+        /// last error message, NULL if no error
+        /// </summary>
+        public string LastErrorMsg => Marshal.PtrToStringAnsi(Msg);
+        /// <summary>
+        /// not visible by applications
+        /// </summary>
+        private IntPtr State = IntPtr.Zero;
+
+        /// <summary>
+        /// used to allocate the internal state
+        /// </summary>
+        private IntPtr ZAlloc = IntPtr.Zero;
+        /// <summary>
+        /// used to free the internal state
+        /// </summary>
+        private IntPtr ZFree = IntPtr.Zero;
+        /// <summary>
+        /// private data object passed to zalloc and zfree
+        /// </summary>
+        private IntPtr Opaque = IntPtr.Zero;
+
+        /// <summary>
+        /// best guess about the data type: binary or text for deflate, or the decoding state for inflate
+        /// </summary>
+        public int DataType;
+        /// <summary>
+        /// Adler-32 or CRC-32 value of the uncompressed data
+        /// </summary>
+        public ulong Adler;
+        /// <summary>
+        /// reserved for future use
+        /// </summary>
+        private ulong Reserved;
 #pragma warning restore 169
 #pragma warning restore IDE0044
     }

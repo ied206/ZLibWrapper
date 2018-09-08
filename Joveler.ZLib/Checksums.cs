@@ -46,8 +46,7 @@ namespace Joveler.ZLib
         #region Constructor
         public Crc32Stream(Stream stream)
         {
-            NativeMethods.CheckZLibUserProvided();
-
+            NativeMethods.CheckZLibLoaded();
             _baseStream = stream;
         }
         #endregion
@@ -119,8 +118,7 @@ namespace Joveler.ZLib
         #region Constructor
         public Adler32Stream(Stream stream)
         {
-            NativeMethods.CheckZLibUserProvided();
-
+            NativeMethods.CheckZLibLoaded();
             _baseStream = stream;
         }
         #endregion
@@ -188,8 +186,7 @@ namespace Joveler.ZLib
         #region Constructor
         public Crc32Checksum()
         {
-            NativeMethods.CheckZLibUserProvided();
-
+            NativeMethods.CheckZLibLoaded();
             Reset();
         }
         #endregion
@@ -227,7 +224,7 @@ namespace Joveler.ZLib
         #region zlib crc32 Wrapper
         public static uint Crc32(byte[] buffer)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             using (PinnedArray pinRead = new PinnedArray(buffer))
             {
@@ -237,7 +234,7 @@ namespace Joveler.ZLib
 
         public static uint Crc32(byte[] buffer, int offset, int count)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 
@@ -265,7 +262,7 @@ namespace Joveler.ZLib
 
         public static uint Crc32(uint checksum, byte[] buffer)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
@@ -275,7 +272,7 @@ namespace Joveler.ZLib
 
         public static uint Crc32(uint checksum, byte[] buffer, int offset, int count)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 
@@ -307,7 +304,6 @@ namespace Joveler.ZLib
     {
         #region Fields and Properties
         private const uint InitChecksum = 1;
-        private readonly int _bufferSize;
 
         private uint _checksum;
         public uint Checksum => _checksum;
@@ -316,8 +312,7 @@ namespace Joveler.ZLib
         #region Constructor
         public Adler32Checksum()
         {
-            NativeMethods.CheckZLibUserProvided();
-            _bufferSize = NativeMethods.BufferSize;
+            NativeMethods.CheckZLibLoaded();
 
             Reset();
         }
@@ -338,10 +333,10 @@ namespace Joveler.ZLib
 
         public uint Append(Stream stream)
         {
-            byte[] buffer = new byte[_bufferSize];
+            byte[] buffer = new byte[NativeMethods.BufferSize];
             while (stream.Position < stream.Length)
             {
-                int readByte = stream.Read(buffer, 0, _bufferSize);
+                int readByte = stream.Read(buffer, 0, NativeMethods.BufferSize);
                 _checksum = Adler32(_checksum, buffer, 0, readByte);
             }
             return _checksum;
@@ -356,7 +351,7 @@ namespace Joveler.ZLib
         #region zlib adler32 Wrapper
         public static uint Adler32(byte[] buffer)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
@@ -366,7 +361,7 @@ namespace Joveler.ZLib
 
         public static uint Adler32(byte[] buffer, int offset, int count)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 
@@ -394,7 +389,7 @@ namespace Joveler.ZLib
 
         public static uint Adler32(uint checksum, byte[] buffer)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             using (PinnedArray bufferPtr = new PinnedArray(buffer))
             {
@@ -404,7 +399,7 @@ namespace Joveler.ZLib
 
         public static uint Adler32(uint checksum, byte[] buffer, int offset, int count)
         {
-            NativeMethods.CheckZLibUserProvided();
+            NativeMethods.CheckZLibLoaded();
 
             DeflateStream.ValidateReadWriteArgs(buffer, offset, count);
 

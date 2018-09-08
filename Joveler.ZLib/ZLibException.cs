@@ -52,26 +52,47 @@ namespace Joveler.ZLib
             return msg == null ? $"[{errorCode}]" : $"[{errorCode}] {msg}";
         }
 
-        // ReSharper disable once InconsistentNaming
-        internal static void CheckZLibOK(ZLibReturnCode ret, ZStream zstream = null)
+        internal static void CheckZLibRetOk(ZLibReturnCode ret, ZStreamL32 zs = null)
         {
             if (ret != ZLibReturnCode.OK)
             {
-                if (zstream == null)
+                if (zs == null)
                     throw new ZLibException(ret);
                 else
-                    throw new ZLibException(ret, zstream.LastErrorMsg);
+                    throw new ZLibException(ret, zs.LastErrorMsg);
+            }
+        }
+        
+        internal static void CheckZLibRetOk(ZLibReturnCode ret, ZStreamL64 zs = null)
+        {
+            if (ret != ZLibReturnCode.OK)
+            {
+                if (zs == null)
+                    throw new ZLibException(ret);
+                else
+                    throw new ZLibException(ret, zs.LastErrorMsg);
             }
         }
 
-        internal static void CheckZLibError(ZLibReturnCode ret, ZStream zstream = null)
+        internal static void CheckZLibRetError(ZLibReturnCode ret, ZStreamL32 zs = null)
         {
             if (ret < 0)
             {
-                if (zstream == null)
+                if (zs == null)
                     throw new ZLibException(ret);
                 else
-                    throw new ZLibException(ret, zstream.LastErrorMsg);
+                    throw new ZLibException(ret, zs.LastErrorMsg);
+            }
+        }
+        
+        internal static void CheckZLibRetError(ZLibReturnCode ret, ZStreamL64 zs = null)
+        {
+            if (ret < 0)
+            {
+                if (zs == null)
+                    throw new ZLibException(ret);
+                else
+                    throw new ZLibException(ret, zs.LastErrorMsg);
             }
         }
     }

@@ -27,8 +27,11 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using Microsoft.VisualStudio.TestPlatform.Common.DataCollection;
 
 namespace Joveler.ZLib.Tests
 {
@@ -40,12 +43,17 @@ namespace Joveler.ZLib.Tests
         [AssemblyInitialize]
         public static void Init(TestContext ctx)
         {
-            string dllPath;
-            if (IntPtr.Size == 8)
-                dllPath = Path.Combine("x64", "zlibwapi.dll");
-            else
-                dllPath = Path.Combine("x86", "zlibwapi.dll");
-            ZLibInit.GlobalInit(dllPath);
+            string libPath = null;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                if (IntPtr.Size == 8)
+                    libPath = Path.Combine("x64", "zlibwapi.dll");
+                else
+                    libPath = Path.Combine("x86", "zlibwapi.dll");
+            }
+            // else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {}
+            
+            ZLibInit.GlobalInit(libPath);
 
             SampleDir = Path.GetFullPath(Path.Combine("..", "..", "..", "Samples"));
         }
@@ -66,6 +74,37 @@ namespace Joveler.ZLib.Tests
         {
             HashAlgorithm hash = SHA256.Create();
             return hash.ComputeHash(input);
+        }
+
+        public static int RunPigz(string tempArchiveFile)
+        {
+            string pigzBinary;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                pigzBinary = Path.Combine(TestSetup.SampleDir, "pigz.exe");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                pigzBinary = "pigz";
+            }
+            else
+            {
+                throw new PlatformNotSupportedException();
+            }
+
+            Process proc = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    FileName = pigzBinary,
+                    Arguments = $"-k -d {tempArchiveFile}",
+                }
+            };
+            proc.Start();
+            proc.WaitForExit();
+            return proc.ExitCode;
         }
     }
 }

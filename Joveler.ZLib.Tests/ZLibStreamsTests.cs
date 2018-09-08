@@ -188,19 +188,8 @@ namespace Joveler.ZLib.Tests
                         Assert.AreEqual(archiveFs.Length, zs.TotalOut);
                     }
 
-                    Process proc = new Process
-                    {
-                        StartInfo = new ProcessStartInfo
-                        {
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                            FileName = Path.Combine(TestSetup.SampleDir, "pigz.exe"),
-                            Arguments = $"-k -d {tempArchiveFile}",
-                        }
-                    };
-                    proc.Start();
-                    proc.WaitForExit();
-                    Assert.IsTrue(proc.ExitCode == 0);
+                    int ret = TestSetup.RunPigz(tempArchiveFile);
+                    Assert.IsTrue(ret == 0);
 
                     byte[] decompDigest;
                     byte[] originDigest;
@@ -342,19 +331,8 @@ namespace Joveler.ZLib.Tests
                         Assert.AreEqual(archiveFs.Length, zs.TotalOut);
                     }
 
-                    Process proc = new Process
-                    {
-                        StartInfo = new ProcessStartInfo
-                        {
-                            UseShellExecute = false,
-                            CreateNoWindow = true,
-                            FileName = Path.Combine(TestSetup.SampleDir, "pigz.exe"),
-                            Arguments = $"-k -d {tempArchiveFile}",
-                        }
-                    };
-                    proc.Start();
-                    proc.WaitForExit();
-                    Assert.IsTrue(proc.ExitCode == 0);
+                    int ret = TestSetup.RunPigz(tempArchiveFile);
+                    Assert.IsTrue(ret == 0);
 
                     byte[] decompDigest;
                     byte[] originDigest;
